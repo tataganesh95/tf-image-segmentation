@@ -1,8 +1,7 @@
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
+import tensorflow.contrib.slim as slim
 from preprocessing.inception_preprocessing import distort_color, apply_with_random_selector
-
-slim = tf.contrib.slim
 
 def flip_randomly_left_right_image_with_annotation(image_tensor, annotation_tensor):
     """Accepts image tensor and annotation tensor and returns randomly flipped tensors of both.

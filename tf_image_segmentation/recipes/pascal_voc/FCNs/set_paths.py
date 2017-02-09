@@ -23,6 +23,22 @@ if machine == 'ccvl-4gpu':
     flags.DEFINE_string("log_dir", "/home/vittal/work/segmentation/tf-image-segmentation/log_dir/", "Directory to save TF logs")
     flags.DEFINE_string("save_dir", "/home/vittal/work/segmentation/tf-image-segmentation/save_dir/", "Directory to save checkpoint models")
 
+elif machine == 'femur':
+    # Use second GPU -- change if you want to use a first one
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+    
+    # Add a path to a custom fork of TF-Slim
+    # Get it from here:
+    # https://github.com/warmspringwinds/models/tree/fully_conv_vgg
+
+    flags.DEFINE_string("slim_path", "/home/ahundt/src/tf_models/slim", "The path to tf slim repo")
+
+    # Add path to the cloned library
+    flags.DEFINE_string("tf_image_seg_dir", "/home/ahundt/src/tf-image-segmentation/", "Dir for tf-image-segmentation repo")
+    flags.DEFINE_string("checkpoints_dir", "/home/ahundt/tf_image_segmentation_checkpoints/", "Directory where checkpoints are saved")
+    flags.DEFINE_string("log_dir", "/home/ahundt/tf_image_segmentation_checkpoints/log_dir/", "Directory to save TF logs")
+    flags.DEFINE_string("save_dir", "/home/ahundt/tf_image_segmentation_checkpoints/save_dir/", "Directory to save checkpoint models")
+
 elif 'login' or 'gpu' in machine:
     # Add a path to a custom fork of TF-Slim
     # Get it from here:
