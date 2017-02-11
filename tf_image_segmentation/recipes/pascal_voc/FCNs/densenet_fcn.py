@@ -29,6 +29,7 @@ from tf_image_segmentation.utils.augmentation import (distort_randomly_image_col
 
 from tf_image_segmentation.models.densenet_fcn import layers
 from tf_image_segmentation.models.densenet_fcn import densenet_fc
+from tf_image_segmentation.models import unet
 
 import keras.backend as K
 
@@ -59,6 +60,8 @@ if __name__ == '__main__':
     image_train_size = [384, 384, 3]
     image_2d_train_size = [image_train_size[0],image_train_size[1]]
     number_of_classes = 21
+    # model_name options: densenet, unet
+    model_name = 'unet'
     # train_with_api options: keras, tf
     train_with_api = 'tf'
 
@@ -82,8 +85,12 @@ if __name__ == '__main__':
 
     val_image, val_annotation = read_tfrecord_and_decode_into_image_annotation_pair_tensors(filename_val_queue)
 
+
     print('creating densenet model')
-    model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
+    if model_name == 'densenet':
+        model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
+    elif model_name == 'unet':
+        model = unet.get_unet(image_train_size,number_of_classes)
 
     if train_with_api is 'tf':
         print('Running with tf training, initializing batches...')
