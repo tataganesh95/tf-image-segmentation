@@ -30,7 +30,7 @@ from tf_image_segmentation.utils.augmentation import (distort_randomly_image_col
 from tf_image_segmentation.models.densenet_fcn import layers
 from tf_image_segmentation.models.densenet_fcn import densenet_fc
 
-import keras as K
+import keras.backend as K
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import np_utils
@@ -39,28 +39,29 @@ from keras.callbacks import TensorBoard
 from keras.callbacks import CSVLogger
 from keras.callbacks import ModelCheckpoint
 
-
 # http://stackoverflow.com/a/5215012/99379
 def timeStamped(fname, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
-dirname = timeStamped('batch_densenet_fcn')
-out_dir='/home/ahundt/datasets/tf_image_segmentation_checkpoints/'+dirname+'/'
-sess = tf.Session()
-K.backend.set_session(sess)
-
-FLAGS = set_paths.FLAGS
-
-checkpoints_dir = FLAGS.checkpoints_dir
-log_dir = FLAGS.log_dir + "fcn-8s/"
-
-slim = tf.contrib.slim
-
 if __name__ == '__main__':
+    dirname = timeStamped('batch_densenet_fcn')
+    out_dir=FLAGS.checkpoints_dir+dirname+'/'
+    sess = tf.Session()
+    K.set_session(sess)
 
-    batch_size = 32
+    FLAGS = set_paths.FLAGS
+
+    checkpoints_dir = FLAGS.checkpoints_dir
+    log_dir = FLAGS.log_dir + "fcn-8s/"
+
+    slim = tf.contrib.slim
+    batch_size = 1
     image_train_size = [384, 384, 3]
+    image_2d_train_size = [image_train_size[0],image_train_size[1]]
     number_of_classes = 21
+    # train_with_api options: keras, tf
+    train_with_api = 'tf'
+
     tfrecord_filename = 'pascal_augmented_train.tfrecords'
     pascal_voc_lut = pascal_segmentation_lut()
     class_labels = pascal_voc_lut.keys()
@@ -81,84 +82,169 @@ if __name__ == '__main__':
 
     val_image, val_annotation = read_tfrecord_and_decode_into_image_annotation_pair_tensors(filename_val_queue)
 
-
-    # # Various data augmentation stages
-    # image, annotation = flip_randomly_left_right_image_with_annotation(image, annotation)
-
-    # # image = distort_randomly_image_color(image)
-
-    # resized_image, resized_annotation = scale_randomly_image_with_annotation_with_fixed_size_output(image, annotation, image_train_size)
-
-
-    # resized_annotation = tf.squeeze(resized_annotation)
-
-    # image_batch, annotation_batch = tf.train.shuffle_batch( [resized_image, resized_annotation],
-    #                                             batch_size=1,
-    #                                             capacity=3000,
-    #                                             num_threads=2,
-    #                                             min_after_dequeue=1000)
-
-
+    print('creating densenet model')
     model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
 
+    if train_with_api is 'tf':
+        print('Running with tf training, initializing batches...')
+        from keras.objectives import categorical_crossentropy
+        output_tensor = model.output
 
-    model.compile(loss="categorical_crossentropy", optimizer='adam')
+        # Various data augmentation stages
+        image, annotation = flip_randomly_left_right_image_with_annotation(image, annotation)
 
-    # upsampled_logits_batch, fcn_16s_variables_mapping = FCN_8s(image_batch_tensor=image_batch,
-    #                                                         number_of_classes=number_of_classes,
-    #                                                         is_training=True)
+        # image = distort_randomly_image_color(image)
+
+        resized_image, resized_annotation = scale_randomly_image_with_annotation_with_fixed_size_output(image, annotation, image_2d_train_size)
 
 
-    # valid_labels_batch_tensor, valid_logits_batch_tensor = get_valid_logits_and_labels(annotation_batch_tensor=annotation_batch,
-    #                                                                                     logits_batch_tensor=upsampled_logits_batch,
-    #                                                                                     class_labels=class_labels)
-    print('Using real-time data augmentation.')
-    # This will do preprocessing and realtime data augmentation:
-    datagen = ImageDataGenerator(
-        featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        samplewise_std_normalization=False,  # divide each input by its std
-        zca_whitening=False,  # apply ZCA whitening
-        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
-        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
-        horizontal_flip=True,  # randomly flip images
-        vertical_flip=False)  # randomly flip images
+        resized_annotation = tf.squeeze(resized_annotation)
 
-    # Compute quantities required for featurewise normalization
-    # (std, mean, and principal components if ZCA whitening is applied).
-    datagen.fit(image)
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
-    
-    tensorboard = TensorBoard(log_dir=out_dir, histogram_freq=10, write_graph=True)
-    csv = CSVLogger(out_dir+dirname+'.csv', separator=',', append=True)
-    model_checkpoint = ModelCheckpoint(out_dir+'weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto')
+        image_batch, annotation_batch = tf.train.shuffle_batch( [resized_image, resized_annotation],
+                                                    batch_size=batch_size,
+                                                    capacity=3000,
+                                                    num_threads=2,
+                                                    min_after_dequeue=1000)
 
-    start_time = time.time()
-    # Fit the model on the batches generated by datagen.flow().
-    history = model.fit_generator(datagen.flow(image, annotation,
-                        batch_size=batch_size),
-                        samples_per_epoch=image.shape[0],
-                        nb_epoch=nb_epoch,
-                        validation_data=(val_image, val_annotation),
+        valid_labels_batch_tensor, valid_logits_batch_tensor = get_valid_logits_and_labels(annotation_batch_tensor=annotation_batch,
+                                                                                            logits_batch_tensor=output_tensor,
+                                                                                            class_labels=class_labels)
+        cross_entropies = K.categorical_crossentropy(output_tensor, annotation_batch, from_logits=True)
+        
+        
+        # Normalize the cross entropy -- the number of elements
+        # is different during each step due to mask out regions
+        # aka loss
+        cross_entropy_sum = tf.reduce_mean(cross_entropies)
 
-                        callbacks =[tensorboard,csv,model_checkpoint])
+        #pred = tf.argmax(upsampled_logits_batch, dimension=3)
 
-    end_fit_time = time.time()
-    average_time_per_epoch = (end_fit_time - start_time) / nb_epoch
-    
-    model.predict(val_image, batch_size=batch_size, verbose=1)
+        #probabilities = tf.nn.softmax(upsampled_logits_batch)
 
-    end_predict_time = time.time()
-    average_time_to_predict = (end_predict_time - end_fit_time) / nb_epoch
+        with tf.variable_scope("adam_vars"):
+            train_step = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(cross_entropy_sum)
 
-    results.append((history, average_time_per_epoch, average_time_to_predict))
-    print ('--------------------------------------------------------------------')
-    print ('[run_name,batch_size,average_time_per_epoch,average_time_to_predict]')
-    print ([dirname,batch_size,average_time_per_epoch,average_time_to_predict])
-    print ('--------------------------------------------------------------------')
+        
+
+        merged_summary_op = tf.summary.merge_all()
+
+        summary_string_writer = tf.summary.FileWriter(log_dir)
+
+        # Create the log folder if doesn't exist yet
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+            
+        #The op for initializing the variables.
+        local_vars_init_op = tf.local_variables_initializer()
+
+        combined_op = tf.group(local_vars_init_op, global_vars_init_op)
+
+        # We need this to save only model variables and omit
+        # optimization-related and other variables.
+        model_variables = slim.get_model_variables()
+        saver = tf.train.Saver(model_variables)
+
+        sess.run(combined_op)
+        init_fn(sess)
+
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
+        
+        print('starting training...')
+
+        # 10 epochs
+        for i in xrange(11127 * number_of_epochs):
+        
+            cross_entropy, summary_string, _ = sess.run([ cross_entropy_sum,
+                                                        merged_summary_op,
+                                                        train_step ],
+                                                        feed_dict={K.learning_phase(): 1})
+            
+            print("Current loss: " + str(cross_entropy))
+            
+            summary_string_writer.add_summary(summary_string, i)
+            
+            if i % 11127 == 0:
+                save_path = saver.save(sess, FLAGS.save_dir + "model_fcn8s_epoch_" + str(i) + ".ckpt")
+                print("Model saved in file: %s" % save_path)
+                
+            
+        coord.request_stop()
+        coord.join(threads)
+        
+        save_path = saver.save(sess, FLAGS.save_dir + "model_fcn8s_final.ckpt")
+        print("Model saved in file: %s" % save_path)
+        
+        summary_string_writer.close()
+
+    if  train_with_api is 'keras':
+        print('Running with keras training, converting tensors to numpy...')
+
+        # TODO(ahundt) remove conversion to numpy when tensors are directly supported https://github.com/fchollet/keras/issues/5356
+        image = image.eval(session=sess)
+        annotation = annotation.eval(session=sess)
+        val_image = val_image.eval(session=sess)
+        val_annotation = val_annotation.eval(session=sess)
+
+        print('completed converting tensors to numpy, compiling model and augmenting image data...')
+
+        model.compile(loss="categorical_crossentropy", optimizer='adam')
+
+        lr_reducer = ReduceLROnPlateau(monitor='val_loss', factor=np.sqrt(0.1), cooldown=0, patience=5, min_lr=0.5e-6)
+        early_stopper = EarlyStopping(monitor='val_acc', min_delta=0.001, patience=10)
+        csv_logger = CSVLogger('resnet18_cifar10.csv')
+
+
+        # This will do preprocessing and realtime data augmentation:
+        datagen = ImageDataGenerator(
+            featurewise_center=False,  # set input mean to 0 over the dataset
+            samplewise_center=False,  # set each sample mean to 0
+            featurewise_std_normalization=False,  # divide inputs by std of the dataset
+            samplewise_std_normalization=False,  # divide each input by its std
+            zca_whitening=False,  # apply ZCA whitening
+            rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+            width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+            height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+            horizontal_flip=True,  # randomly flip images
+            vertical_flip=False)  # randomly flip images
+
+        # Compute quantities required for featurewise normalization
+        # (std, mean, and principal components if ZCA whitening is applied).
+        datagen.fit(image)
+        if not os.path.exists(out_dir):
+            os.makedirs(out_dir)
+        
+        tensorboard = TensorBoard(log_dir=out_dir, histogram_freq=10, write_graph=True)
+        csv = CSVLogger(out_dir+dirname+'.csv', separator=',', append=True)
+        model_checkpoint = ModelCheckpoint(out_dir+'weights.hdf5', monitor='val_loss', verbose=0, save_best_only=True, save_weights_only=False, mode='auto')
+        callbacks=[lr_reducer, early_stopper, csv]
+
+        print('augmenting image data initialized, training with fit_generator...')
+        start_time = time.time()
+
+        # Fit the model on the batches generated by datagen.flow().
+        history = model.fit_generator(datagen.flow(image, annotation,
+                            batch_size=batch_size),
+                            samples_per_epoch=image.shape[0],
+                            nb_epoch=nb_epoch,
+                            validation_data=(val_image, val_annotation),
+                            verbose=1, max_q_size=100,
+                            callbacks =callbacks)
+
+        end_fit_time = time.time()
+        average_time_per_epoch = (end_fit_time - start_time) / nb_epoch
+        
+        print('training complete, timing validation set prediction...')
+        model.predict(val_image, batch_size=batch_size, verbose=1)
+
+        end_predict_time = time.time()
+        average_time_to_predict = (end_predict_time - end_fit_time) / nb_epoch
+
+        results.append((history, average_time_per_epoch, average_time_to_predict))
+        print ('--------------------------------------------------------------------')
+        print ('[run_name,batch_size,average_time_per_epoch,average_time_to_predict]')
+        print ([dirname,batch_size,average_time_per_epoch,average_time_to_predict])
+        print ('--------------------------------------------------------------------')
     
     # Close the Session when we're done.
     sess.close()
