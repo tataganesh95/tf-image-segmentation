@@ -64,6 +64,7 @@ if __name__ == '__main__':
     model_name = 'unet'
     # train_with_api options: keras, tf
     train_with_api = 'tf'
+    number_of_epochs = 20
 
     tfrecord_filename = 'pascal_augmented_train.tfrecords'
     pascal_voc_lut = pascal_segmentation_lut()
@@ -86,7 +87,7 @@ if __name__ == '__main__':
     val_image, val_annotation = read_tfrecord_and_decode_into_image_annotation_pair_tensors(filename_val_queue)
 
 
-    print('creating densenet model')
+    print('creating '+model_name+' model')
     if model_name == 'densenet':
         model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
     elif model_name == 'unet':
@@ -95,8 +96,9 @@ if __name__ == '__main__':
     if train_with_api is 'tf':
         print('Running with tf training, initializing batches...')
         from keras.objectives import categorical_crossentropy
+        #softmax = model.output
+        #output_tensor = K.argmax(softmax)
         output_tensor = model.output
-
         # Various data augmentation stages
         image, annotation = flip_randomly_left_right_image_with_annotation(image, annotation)
 
@@ -116,7 +118,19 @@ if __name__ == '__main__':
         valid_labels_batch_tensor, valid_logits_batch_tensor = get_valid_logits_and_labels(annotation_batch_tensor=annotation_batch,
                                                                                             logits_batch_tensor=output_tensor,
                                                                                             class_labels=class_labels)
-        cross_entropies = K.categorical_crossentropy(output_tensor, annotation_batch, from_logits=True)
+
+                                                                                            
+        # Assume that image_coords is a tensor of size [H, W, 2] representing the image
+        # coordinates of each pixel.
+        # Convert softmax to shape [N, H, W, C, 1]
+        #softmax = tf.expand_dims(softmax, -1)
+        # Convert image coords to shape [H, W, 1, 2]
+        #image_coords = tf.expand_dims(image_coords, 2)
+        # Multiply (with broadcasting) and reduce over image dimensions to get the result
+        # of shape [N, C, 2]
+        #spatial_soft_argmax = tf.reduce_sum(softmax * image_coords, reduction_indices=[1, 2])
+
+        cross_entropies = K.categorical_crossentropy(valid_logits_batch_tensor, valid_labels_batch_tensor, from_logits=True)
         
         
         # Normalize the cross entropy -- the number of elements
@@ -127,6 +141,7 @@ if __name__ == '__main__':
         #pred = tf.argmax(upsampled_logits_batch, dimension=3)
 
         #probabilities = tf.nn.softmax(upsampled_logits_batch)
+
 
         with tf.variable_scope("adam_vars"):
             train_step = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(cross_entropy_sum)
@@ -143,19 +158,20 @@ if __name__ == '__main__':
             
         #The op for initializing the variables.
         local_vars_init_op = tf.local_variables_initializer()
-
+        global_vars_init_op = tf.global_variables_initializer()
+        
         combined_op = tf.group(local_vars_init_op, global_vars_init_op)
 
         # We need this to save only model variables and omit
         # optimization-related and other variables.
-        model_variables = slim.get_model_variables()
+        model_variables = model.trainable_weights
         saver = tf.train.Saver(model_variables)
 
         sess.run(combined_op)
-        init_fn(sess)
+        #init_fn(sess)
 
         coord = tf.train.Coordinator()
-        threads = tf.train.start_queue_runners(coord=coord)
+        threads = tf.train.start_queue_runners(sess=sess,coord=coord)
         
         print('starting training...')
 

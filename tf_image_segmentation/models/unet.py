@@ -55,11 +55,6 @@ def get_unet(image_size, num_classes):
 
     x = Reshape((image_size[0], image_size[1], num_classes))(x)
 
-    print x.get_shape()
-
     model = Model(input=inputs, output=x)
-
-
-    model.compile(loss="categorical_crossentropy", optimizer='adam')
 
     return model
