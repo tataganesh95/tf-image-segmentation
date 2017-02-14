@@ -44,8 +44,19 @@ from keras.callbacks import ModelCheckpoint
 def timeStamped(fname, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
+def get_model(image_train_size=None, tensor=None, model_type=None):
+    print('creating ' + model_type + ' model')
+    if model_type == 'densenet':
+        model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
+    elif model_type == 'unet':
+        model = unet.get_unet(image_train_size,number_of_classes,tensor=tensor)
+    return model
+
 if __name__ == '__main__':
     dirname = timeStamped('batch_densenet_fcn')
+
+    # model_type options: densenet, unet
+    model_type = 'unet'
     out_dir=FLAGS.checkpoints_dir+dirname+'/'
     sess = tf.Session()
     K.set_session(sess)
@@ -53,24 +64,33 @@ if __name__ == '__main__':
     FLAGS = set_paths.FLAGS
 
     checkpoints_dir = FLAGS.checkpoints_dir
-    log_dir = FLAGS.log_dir + "fcn-8s/"
+    log_dir = FLAGS.log_dir + model_type + "/"
+
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    
+
+    if not os.path.exists(FLAGS.save_dir):
+        os.makedirs(FLAGS.save_dir)
 
     slim = tf.contrib.slim
     batch_size = 1
     image_train_size = [384, 384, 3]
     image_2d_train_size = [image_train_size[0],image_train_size[1]]
     number_of_classes = 21
-    # model_name options: densenet, unet
-    model_name = 'unet'
     # train_with_api options: keras, tf
     train_with_api = 'tf'
     number_of_epochs = 20
+
+
+    #img_placeholder = tf.placeholder(tf.float32, shape=(None, image_train_size[0], image_train_size[1], image_train_size[2]))
+    #label_placeholder = tf.placeholder(tf.float32, shape=(None, image_train_size[0], image_train_size[1],1))
 
     tfrecord_filename = 'pascal_augmented_train.tfrecords'
     pascal_voc_lut = pascal_segmentation_lut()
     class_labels = pascal_voc_lut.keys()
 
-    densenet_checkpoint = FLAGS.save_dir + 'model_densenet_final.ckpt'
+    densenet_checkpoint = FLAGS.save_dir + 'model_' + model_type + '_final.ckpt'
 
     filename_queue = tf.train.string_input_producer(
         [tfrecord_filename], num_epochs=10)
@@ -87,18 +107,13 @@ if __name__ == '__main__':
     val_image, val_annotation = read_tfrecord_and_decode_into_image_annotation_pair_tensors(filename_val_queue)
 
 
-    print('creating '+model_name+' model')
-    if model_name == 'densenet':
-        model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
-    elif model_name == 'unet':
-        model = unet.get_unet(image_train_size,number_of_classes)
 
     if train_with_api is 'tf':
         print('Running with tf training, initializing batches...')
         from keras.objectives import categorical_crossentropy
         #softmax = model.output
         #output_tensor = K.argmax(softmax)
-        output_tensor = model.output
+        #output_tensor = model.output
         # Various data augmentation stages
         image, annotation = flip_randomly_left_right_image_with_annotation(image, annotation)
 
@@ -115,8 +130,10 @@ if __name__ == '__main__':
                                                     num_threads=2,
                                                     min_after_dequeue=1000)
 
+        model = get_model(image_train_size=image_train_size,model_type=model_type,tensor=image_batch)
+
         valid_labels_batch_tensor, valid_logits_batch_tensor = get_valid_logits_and_labels(annotation_batch_tensor=annotation_batch,
-                                                                                            logits_batch_tensor=output_tensor,
+                                                                                            logits_batch_tensor=model.output,
                                                                                             class_labels=class_labels)
 
                                                                                             
@@ -181,21 +198,22 @@ if __name__ == '__main__':
             cross_entropy, summary_string, _ = sess.run([ cross_entropy_sum,
                                                         merged_summary_op,
                                                         train_step ],
-                                                        feed_dict={K.learning_phase(): 1})
+                                                        feed_dict={K.learning_phase(): 1}#, model.inputs[0]:image_batch}#,img_placeholder:}
+                                                        )
             
             print("Current loss: " + str(cross_entropy))
             
             summary_string_writer.add_summary(summary_string, i)
             
             if i % 11127 == 0:
-                save_path = saver.save(sess, FLAGS.save_dir + "model_fcn8s_epoch_" + str(i) + ".ckpt")
+                save_path = saver.save(sess, FLAGS.save_dir + "model_" + model_type + "_epoch_" + str(i) + ".ckpt")
                 print("Model saved in file: %s" % save_path)
                 
             
         coord.request_stop()
         coord.join(threads)
         
-        save_path = saver.save(sess, FLAGS.save_dir + "model_fcn8s_final.ckpt")
+        save_path = saver.save(sess, FLAGS.save_dir + "model_" +  model_type + "_final.ckpt")
         print("Model saved in file: %s" % save_path)
         
         summary_string_writer.close()

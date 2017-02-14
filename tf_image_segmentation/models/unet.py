@@ -8,10 +8,10 @@ from keras.callbacks import ModelCheckpoint, LearningRateScheduler
 from keras import backend as K
 
 # https://github.com/jocicmarko/ultrasound-nerve-segmentation/blob/master/train.py
-def get_unet(image_size, num_classes):
+def get_unet(image_size, num_classes, tensor=None):
     
     concat_axis = 1 if K.image_dim_ordering() == "th" else -1
-    inputs = Input(image_size)
+    inputs = Input(image_size, tensor=tensor)
     conv1 = Convolution2D(32, 3, 3, activation='relu', border_mode='same')(inputs)
     conv1 = Convolution2D(32, 3, 3, activation='relu', border_mode='same')(conv1)
     pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
