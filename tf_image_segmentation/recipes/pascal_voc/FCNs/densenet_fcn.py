@@ -96,7 +96,8 @@ if __name__ == '__main__':
         [tfrecord_filename], num_epochs=10)
 
     image, annotation = read_tfrecord_and_decode_into_image_annotation_pair_tensors(filename_queue)
-
+    image = tf.cast(image,tf.float32)
+    annotation = tf.cast(annotation,tf.float32)
 
     tfrecord_val_filename = 'pascal_augmented_val.tfrecords'
 
@@ -161,7 +162,7 @@ if __name__ == '__main__':
 
 
         with tf.variable_scope("adam_vars"):
-            train_step = tf.train.AdamOptimizer(learning_rate=0.0001).minimize(cross_entropy_sum)
+            train_step = tf.train.AdamOptimizer(learning_rate=1e-5).minimize(cross_entropy_sum)
 
         
 

@@ -162,8 +162,7 @@ def read_tfrecord_and_decode_into_image_annotation_pair_tensors(tfrecord_filenam
     annotation_shape = tf.stack([height, width, 1])
     
     image = tf.reshape(image, image_shape)
-    image = tf.cast(image,tf.float32)
     annotation = tf.reshape(annotation, annotation_shape)
-    annotation = tf.cast(annotation,tf.float32)
+
     
     return image, annotation
