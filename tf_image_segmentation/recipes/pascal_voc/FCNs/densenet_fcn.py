@@ -44,10 +44,10 @@ from keras.callbacks import ModelCheckpoint
 def timeStamped(fname, fmt='%Y-%m-%d-%H-%M-%S_{fname}'):
     return datetime.datetime.now().strftime(fmt).format(fname=fname)
 
-def get_model(image_train_size=None, tensor=None, model_type=None):
+def get_model(image_train_size=None, tensor=None, model_type=None, batch_size=None):
     print('creating ' + model_type + ' model')
     if model_type == 'densenet':
-        model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size)
+        model = densenet_fc.create_fc_dense_net(number_of_classes,image_train_size, upscaling_type='deconv', tensor=tensor, batch_size=batch_size, reduction=0.5)
     elif model_type == 'unet':
         model = unet.get_unet(image_train_size,number_of_classes,tensor=tensor)
     return model
@@ -56,7 +56,7 @@ if __name__ == '__main__':
     dirname = timeStamped('batch_densenet_fcn')
 
     # model_type options: densenet, unet
-    model_type = 'unet'
+    model_type = 'densenet'
     out_dir=FLAGS.checkpoints_dir+dirname+'/'
     sess = tf.Session()
     K.set_session(sess)
@@ -131,7 +131,7 @@ if __name__ == '__main__':
                                                     num_threads=2,
                                                     min_after_dequeue=1000)
 
-        model = get_model(image_train_size=image_train_size,model_type=model_type,tensor=image_batch)
+        model = get_model(image_train_size=image_train_size,model_type=model_type,tensor=image_batch,batch_size=batch_size)
 
         valid_labels_batch_tensor, valid_logits_batch_tensor = get_valid_logits_and_labels(annotation_batch_tensor=annotation_batch,
                                                                                             logits_batch_tensor=model.output,
