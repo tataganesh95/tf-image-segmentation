@@ -62,13 +62,13 @@ def get_model(image_train_size=None, tensor=None, model_type=None, batch_size=No
 if __name__ == '__main__':
     dirname = timeStamped('batch_densenet_fcn')
 
+
+    FLAGS = set_paths.FLAGS
     # model_type options: densenet, unet
     model_type = 'densenet'
     out_dir = FLAGS.checkpoints_dir + dirname + '/'
     sess = tf.Session()
     K.set_session(sess)
-
-    FLAGS = set_paths.FLAGS
 
     checkpoints_dir = FLAGS.checkpoints_dir
     log_dir = FLAGS.log_dir + model_type + "/"
