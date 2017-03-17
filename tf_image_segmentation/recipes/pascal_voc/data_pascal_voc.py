@@ -7,14 +7,13 @@ This is a very basic example of how to use Sacred.
 from __future__ import division, print_function, unicode_literals
 from sacred import Experiment, Ingredient
 import sys
-from pypascal_voctools.pascal_voc import pascal_voc
 import numpy as np
 import matplotlib.pyplot as plt
 import pylab
 from PIL import Image
 from collections import defaultdict
 import os
-from keras.utils.datautils import get_file
+from keras.utils import get_file
 from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
 from tf_image_segmentation.utils import pascal_voc
