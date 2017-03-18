@@ -30,7 +30,7 @@ from tf_image_segmentation.utils import pascal_voc
 
 
 # ============== Ingredient 2: dataset =======================
-data_pascal_voc = Ingredient("dataset", ingredients=[datasets.data_paths, datasets.s])
+data_pascal_voc = Experiment("dataset", ingredients=[datasets.data_paths, datasets.s])
 
 
 @data_pascal_voc.config
@@ -118,5 +118,5 @@ def pascal_voc_setup(dataset_path, pascal_root, pascal_berkeley_root,
 if __name__ == '__main__':
     # Create pascal voc experiment so dataset interaction
     # can be run as its own executable
-    ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
-    ex.run_commandline()
+    #ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
+    data_pascal_voc.run_commandline()
