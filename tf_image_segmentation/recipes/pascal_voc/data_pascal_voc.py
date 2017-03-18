@@ -35,7 +35,7 @@ data_pascal_voc = Experiment("dataset", ingredients=[datasets.data_paths, datase
 
 @data_pascal_voc.config
 def cfg3(dataset):
-    dataset_path = dataset.paths['base'] + '/VOC2012'
+    dataset_path = dataset['paths']['base'] + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # based on https://github.com/martinkersner/train-DeepLab
