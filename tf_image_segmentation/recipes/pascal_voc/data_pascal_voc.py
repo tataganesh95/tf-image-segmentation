@@ -34,8 +34,8 @@ data_pascal_voc = Experiment("dataset", ingredients=[datasets.data_paths, datase
 
 
 @data_pascal_voc.config
-def cfg3(data_paths):
-    dataset_path = data_paths['base'] + '/VOC2012'
+def cfg3(paths):
+    dataset_path = paths['base'] + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # based on https://github.com/martinkersner/train-DeepLab
@@ -98,15 +98,17 @@ def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkel
     # this will create a tfrecord in:
     # tf_image_segmentation/tf_image_segmentation/recipes/pascal_voc/
     write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_val_image_annotation_filename_pairs,
-                                            tfrecords_filename=tfrecords_val_filename)
+                                             tfrecords_filename=tfrecords_val_filename)
 
     write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_train_image_annotation_filename_pairs,
-                                            tfrecords_filename=tfrecords_train_filename)
+                                             tfrecords_filename=tfrecords_train_filename)
 
 
 @data_pascal_voc.command
-def pascal_voc_setup(dataset_path, pascal_root, pascal_berkeley_root,
-                     paths, settings, tfrecords_train_filename, tfrecords_val_filename):
+def pascal_voc_setup(filenames, dataset_path, pascal_root,
+                     pascal_berkeley_root, paths, settings,
+                     tfrecords_train_filename,
+                     tfrecords_val_filename):
     # download the dataset
     pascal_voc_download(dataset_path, filenames, paths, settings, urls)
     # convert the relevant files to a more useful format
@@ -118,5 +120,5 @@ def pascal_voc_setup(dataset_path, pascal_root, pascal_berkeley_root,
 if __name__ == '__main__':
     # Create pascal voc experiment so dataset interaction
     # can be run as its own executable
-    #ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
+    # ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
     data_pascal_voc.run_commandline()
