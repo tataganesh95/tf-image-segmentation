@@ -1,15 +1,19 @@
-
 #!/usr/bin/env python
 # coding=utf-8
 """
-This is a very basic example of how to use Sacred.
+This is a script for downloading and converting the pascal voc 2012 dataset
+and the berkely extended version.
+
+    # original PASCAL VOC 2012
+    # wget http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar # 2 GB
+
+    # berkeley augmented Pascal VOC
+    # wget http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
 """
 from __future__ import division, print_function, unicode_literals
-from sacred import Experiment, Ingredient
+from sacred import Ingredient
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
-import pylab
 from PIL import Image
 from collections import defaultdict
 import os
