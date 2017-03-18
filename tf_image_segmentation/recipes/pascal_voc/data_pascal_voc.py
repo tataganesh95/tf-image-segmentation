@@ -143,8 +143,12 @@ def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
 #                                         tfrecords_val_filename)
 
 
-if __name__ == '__main__':
-    # Create pascal voc experiment so dataset interaction
-    # can be run as its own executable
-    # ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, data_paths])
-    data_pascal_voc.run_commandline()
+@data_pascal_voc.automain
+def main(dataset_path, filenames, paths, settings, urls):
+    pascal_voc_download(dataset_path, filenames, paths, settings, urls)
+# if __name__ == '__main__':
+#     # Create pascal voc experiment so dataset interaction
+#     # can be run as its own executable
+#     ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, data_paths])
+#     ex.run_commandline();
+#     #data_pascal_voc.run_commandline()
