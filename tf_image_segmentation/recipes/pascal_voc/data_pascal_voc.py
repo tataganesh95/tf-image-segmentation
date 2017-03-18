@@ -84,11 +84,11 @@ def cfg3(paths):
 #     return [dataset_path + filename for filename in filenames]
 
 
-# @data_pascal_voc.command
-# def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
-#     zip_paths = pascal_voc_files(dataset_path, filenames, paths, settings, urls)
-#     for url, filename in zip(urls, filenames):
-#         get_file(filename, url, untar=True, cache_subdir=dataset_path)
+@data_pascal_voc.command
+def pascal_voc_download(dataset_path, filenames, paths, urls):
+    zip_paths = pascal_voc_files(dataset_path, filenames, paths, settings, urls)
+    for url, filename in zip(urls, filenames):
+        get_file(filename, url, untar=True, cache_subdir=dataset_path)
 
 
 # @data_pascal_voc.command
