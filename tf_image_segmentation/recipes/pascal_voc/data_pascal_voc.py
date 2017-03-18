@@ -12,6 +12,9 @@ and the berkely extended version.
 
 This can be run as an independent executable to download
 the dataset or be imported by scripts used for larger experiments.
+
+If you aren't sure run this to do a full download + conversion setup of the dataset:
+   ./data_pascal_voc.py pascal_voc_setup
 """
 from __future__ import division, print_function, unicode_literals
 from sacred import Ingredient, Experiment
@@ -100,8 +103,20 @@ def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkel
     write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_train_image_annotation_filename_pairs,
                                             tfrecords_filename=tfrecords_train_filename)
 
+
+@data_pascal_voc.command
+def pascal_voc_setup(dataset_path, pascal_root, pascal_berkeley_root,
+                     paths, settings, tfrecords_train_filename, tfrecords_val_filename):
+    # download the dataset
+    pascal_voc_download(dataset_path, filenames, paths, settings, urls)
+    # convert the relevant files to a more useful format
+    convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
+    pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkeley_root,
+                                        tfrecords_train_filename, tfrecords_val_filename)
+
+
 if __name__ == '__main__':
     # Create pascal voc experiment so dataset interaction
     # can be run as its own executable
-    ex = Experiment('voc2012', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
+    ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
     ex.run_commandline()
