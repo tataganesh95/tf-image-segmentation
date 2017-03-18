@@ -24,9 +24,28 @@ from PIL import Image
 from collections import defaultdict
 import os
 from keras.utils import get_file
-from tf_image_segmentation.recipes import datasets
+# from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
 from tf_image_segmentation.utils import pascal_voc
+from os.path import expanduser
+
+# ============== Ingredient 0: settings =================
+s = Ingredient("settings")
+
+
+@s.config
+def cfg1():
+    verbose = True
+
+
+# ============== Ingredient 1: dataset.paths =================
+data_paths = Ingredient("dataset.paths", ingredients=[s])
+
+
+@data_paths.config
+def cfg2(settings):
+    v = not settings['verbose']
+    base = expanduser("~") + "/datasets"
 
 
 # ============== Ingredient 2: dataset =======================
@@ -34,8 +53,8 @@ data_pascal_voc = Experiment("dataset", ingredients=[datasets.data_paths, datase
 
 
 @data_pascal_voc.config
-def cfg3(dataset):
-    dataset_path = dataset['paths']['base'] + '/VOC2012'
+def cfg3(paths):
+    dataset_path = paths['base'] + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # based on https://github.com/martinkersner/train-DeepLab
