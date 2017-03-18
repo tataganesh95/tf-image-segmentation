@@ -34,7 +34,7 @@ data_pascal_voc = Experiment("dataset")
 
 
 @data_pascal_voc.config
-def cfg3(paths):
+def cfg3():
     verbose = True
     dataset_root = expanduser("~") + "/datasets"
     dataset_path = dataset_root + '/VOC2012'
