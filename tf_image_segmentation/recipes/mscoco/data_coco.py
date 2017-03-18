@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # coding=utf-8
 """
-This is a very basic example of how to use Sacred.
+This is a script for downloading and converting the microsoft coco dataset
+from mscoco.org. This can be run as an independent executable to download
+the dataset or be imported by scripts used for larger experiments.
 """
 from __future__ import division, print_function, unicode_literals
 from sacred import Experiment, Ingredient
@@ -53,6 +55,11 @@ def cfg3(paths):
     filenames.extend(image_filenames)
     filenames.extend(annotation_filenames)
 
+if __name__ == '__main__':
+    # Create pascal voc experiment so dataset intraction
+    # can be run as its own executable
+    ex = Experiment('ms_coco', ingredients=[data_coco, datasets.data_paths, datasets.s])
+    ex.run_commandline()
 
 @data_coco.capture
 def coco_files(dataset_path, filenames, paths, settings, urls):
@@ -144,4 +151,7 @@ def coco_segmentation_to_tfrecord(dataset_path, images_dir, seg_map_dir, list_fi
 
 
 if __name__ == '__main__':
-    data_pascal_voc.run_commandline()
+    # Create coco experiment so dataset interaction
+    # can be run as its own executable
+    ex = Experiment('ms_coco', ingredients=[data_coco, datasets.data_paths, datasets.s])
+    ex.run_commandline()

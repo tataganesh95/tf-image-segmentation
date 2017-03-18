@@ -9,9 +9,12 @@ and the berkely extended version.
 
     # berkeley augmented Pascal VOC
     # wget http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
+
+This can be run as an independent executable to download
+the dataset or be imported by scripts used for larger experiments.
 """
 from __future__ import division, print_function, unicode_literals
-from sacred import Ingredient
+from sacred import Ingredient, Experiment
 import sys
 import numpy as np
 from PIL import Image
@@ -98,4 +101,7 @@ def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkel
                                             tfrecords_filename=tfrecords_train_filename)
 
 if __name__ == '__main__':
-    data_pascal_voc.run_commandline()
+    # Create pascal voc experiment so dataset interaction
+    # can be run as its own executable
+    ex = Experiment('voc2012', ingredients=[data_pascal_voc, datasets.data_paths, datasets.s])
+    ex.run_commandline()
