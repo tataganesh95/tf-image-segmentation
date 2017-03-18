@@ -49,7 +49,7 @@ def cfg2(settings):
 
 
 # ============== Ingredient 2: dataset =======================
-data_pascal_voc = Ingredient("dataset", ingredients=[data_paths, s])
+data_pascal_voc = Experiment("dataset", ingredients=[data_paths, s])
 
 
 @data_pascal_voc.config
@@ -146,5 +146,5 @@ def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
 if __name__ == '__main__':
     # Create pascal voc experiment so dataset interaction
     # can be run as its own executable
-    ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, data_paths])
-    ex.run_commandline()
+    # ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, data_paths])
+    data_pascal_voc.run_commandline()
