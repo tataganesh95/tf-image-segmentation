@@ -29,32 +29,15 @@ from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_
 from tf_image_segmentation.utils import pascal_voc
 from os.path import expanduser
 
-# ============== Ingredient 0: settings =================
-s = Ingredient("settings")
-
-
-@s.config
-def cfg1():
-    verbose = True
-
-
-# ============== Ingredient 1: dataset.paths =================
-data_paths = Ingredient("dataset.paths", ingredients=[s])
-
-
-@data_paths.config
-def cfg2(settings):
-    v = not settings['verbose']
-    base = expanduser("~") + "/datasets"
-
-
 # ============== Ingredient 2: dataset =======================
-data_pascal_voc = Experiment("dataset", ingredients=[data_paths, s])
+data_pascal_voc = Experiment("dataset")
 
 
 @data_pascal_voc.config
 def cfg3(paths):
-    dataset_path = paths['base'] + '/VOC2012'
+    verbose = True
+    base = expanduser("~") + "/datasets"
+    dataset_path = base + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # based on https://github.com/martinkersner/train-DeepLab
