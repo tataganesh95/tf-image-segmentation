@@ -58,7 +58,7 @@ def cfg3(data_paths):
 
 
 @data_pascal_voc.capture
-def pascal_voc_files(dataset_path, filenames, data_paths, settings, urls):
+def pascal_voc_files(dataset_path, filenames, paths, settings, urls):
     print(dataset_path)
     print(paths)
     print(settings)
@@ -66,7 +66,7 @@ def pascal_voc_files(dataset_path, filenames, data_paths, settings, urls):
 
 
 @data_pascal_voc.command
-def pascal_voc_download(dataset_path, filenames, data_paths, settings, urls):
+def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
     zip_paths = pascal_voc_files(dataset_path, filenames, paths, settings, urls)
     for url, filename in zip(urls, filenames):
         get_file(filename, url, untar=True, cache_subdir=dataset_path)
@@ -78,7 +78,7 @@ def convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_roo
 
 
 @data_pascal_voc.config
-def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, data_paths, settings):
+def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, paths, settings):
     tfrecords_train_filename = dataset_path + '/pascal_augmented_train.tfrecords'
     tfrecords_val_filename = dataset_path + '/pascal_augmented_val.tfrecords'
 
