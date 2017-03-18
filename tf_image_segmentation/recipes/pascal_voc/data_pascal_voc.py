@@ -92,3 +92,6 @@ def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkel
 
     write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_train_image_annotation_filename_pairs,
                                             tfrecords_filename=tfrecords_train_filename)
+
+if __name__ == '__main__':
+    data_pascal_voc.run_commandline()

@@ -14,7 +14,7 @@ import pylab
 from PIL import Image
 from collections import defaultdict
 import os
-from keras.utils.datautils import get_file
+from keras.utils import get_file
 from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
 
@@ -82,7 +82,7 @@ def cfg_json_to_segmentation(paths):
 
 @data_coco.command
 def coco_json_to_segmentation(dataDir, dataType, save_path, annFile):
-    coco=COCO(annFile)
+    coco = COCO(annFile)
     imgToAnns = defaultdict(list)
     for ann in coco.dataset['instances']:
         imgToAnns[ann['image_id']].append(ann)
@@ -94,11 +94,11 @@ def coco_json_to_segmentation(dataDir, dataType, save_path, annFile):
         w = img['width']
         name = img['file_name']
         root_name = name[:-4]
-        MASK = np.zeros((h,w), dtype=np.uint8)
-        np.where( MASK > 0 )
+        MASK = np.zeros((h, w), dtype=np.uint8)
+        np.where(MASK > 0)
         for ann in imgToAnns[imgToAnns.keys()[img_num]]:
             mask = coco.annToMask(ann)
-            ids = np.where( mask > 0 )
+            ids = np.where(mask > 0)
             MASK[ids] = ann['category_id']
 
         im = Image.fromarray(MASK)
@@ -142,3 +142,7 @@ def coco_segmentation_to_tfrecord(dataset_path, images_dir, seg_map_dir, list_fi
     # your list with (image, annotation) filename pairs here
     write_image_annotation_pairs_to_tfrecord(filename_pairs=filename_pairs,
                                             tfrecords_filename=tf_records_filename)
+
+
+if __name__ == '__main__':
+    data_pascal_voc.run_commandline()
