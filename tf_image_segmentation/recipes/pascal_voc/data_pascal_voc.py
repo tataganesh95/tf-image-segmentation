@@ -76,71 +76,71 @@ def cfg3(paths):
     ]
 
 
-@data_pascal_voc.capture
-def pascal_voc_files(dataset_path, filenames, paths, settings, urls):
-    print(dataset_path)
-    print(paths)
-    print(settings)
-    return [dataset_path + filename for filename in filenames]
+# @data_pascal_voc.capture
+# def pascal_voc_files(dataset_path, filenames, paths, settings, urls):
+#     print(dataset_path)
+#     print(paths)
+#     print(settings)
+#     return [dataset_path + filename for filename in filenames]
 
 
-@data_pascal_voc.command
-def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
-    zip_paths = pascal_voc_files(dataset_path, filenames, paths, settings, urls)
-    for url, filename in zip(urls, filenames):
-        get_file(filename, url, untar=True, cache_subdir=dataset_path)
+# @data_pascal_voc.command
+# def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
+#     zip_paths = pascal_voc_files(dataset_path, filenames, paths, settings, urls)
+#     for url, filename in zip(urls, filenames):
+#         get_file(filename, url, untar=True, cache_subdir=dataset_path)
 
 
-@data_pascal_voc.command
-def convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root):
-    convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
+# @data_pascal_voc.command
+# def convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root):
+#     convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
 
 
-@data_pascal_voc.config
-def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, paths, settings):
-    tfrecords_train_filename = dataset_path + '/pascal_augmented_train.tfrecords'
-    tfrecords_val_filename = dataset_path + '/pascal_augmented_val.tfrecords'
-    voc_data_subset_mode = 2
+# @data_pascal_voc.config
+# def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, paths, settings):
+#     tfrecords_train_filename = dataset_path + '/pascal_augmented_train.tfrecords'
+#     tfrecords_val_filename = dataset_path + '/pascal_augmented_val.tfrecords'
+#     voc_data_subset_mode = 2
 
 
-@data_pascal_voc.command
-def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkeley_root,
-                                        voc_data_subset_mode,
-                                        tfrecords_train_filename, tfrecords_val_filename):
-    # Returns a list of (image, annotation) filename pairs (filename.jpg, filename.png)
-    overall_train_image_annotation_filename_pairs, overall_val_image_annotation_filename_pairs = \
-        pascal_voc.get_augmented_pascal_image_annotation_filename_pairs(pascal_root=pascal_root,
-            pascal_berkeley_root=pascal_berkeley_root,
-            mode=voc_data_subset_mode)
+# @data_pascal_voc.command
+# def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkeley_root,
+#                                         voc_data_subset_mode,
+#                                         tfrecords_train_filename, tfrecords_val_filename):
+#     # Returns a list of (image, annotation) filename pairs (filename.jpg, filename.png)
+#     overall_train_image_annotation_filename_pairs, overall_val_image_annotation_filename_pairs = \
+#         pascal_voc.get_augmented_pascal_image_annotation_filename_pairs(pascal_root=pascal_root,
+#             pascal_berkeley_root=pascal_berkeley_root,
+#             mode=voc_data_subset_mode)
 
-    # You can create your own tfrecords file by providing
-    # your list with (image, annotation) filename pairs here
-    #
-    # this will create a tfrecord in:
-    # tf_image_segmentation/tf_image_segmentation/recipes/pascal_voc/
-    write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_val_image_annotation_filename_pairs,
-                                             tfrecords_filename=tfrecords_val_filename)
+#     # You can create your own tfrecords file by providing
+#     # your list with (image, annotation) filename pairs here
+#     #
+#     # this will create a tfrecord in:
+#     # tf_image_segmentation/tf_image_segmentation/recipes/pascal_voc/
+#     write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_val_image_annotation_filename_pairs,
+#                                              tfrecords_filename=tfrecords_val_filename)
 
-    write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_train_image_annotation_filename_pairs,
-                                             tfrecords_filename=tfrecords_train_filename)
+#     write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_train_image_annotation_filename_pairs,
+#                                              tfrecords_filename=tfrecords_train_filename)
 
 
-@data_pascal_voc.command
-def pascal_voc_setup(filenames, dataset_path, pascal_root,
-                     pascal_berkeley_root, paths, settings,
-                     voc_data_subset_mode,
-                     tfrecords_train_filename,
-                     tfrecords_val_filename):
-    # download the dataset
-    pascal_voc_download(dataset_path, filenames,
-                        paths, settings, urls)
-    # convert the relevant files to a more useful format
-    convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
-    pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root,
-                                        pascal_berkeley_root,
-                                        voc_data_subset_mode,
-                                        tfrecords_train_filename,
-                                        tfrecords_val_filename)
+# @data_pascal_voc.command
+# def pascal_voc_setup(filenames, dataset_path, pascal_root,
+#                      pascal_berkeley_root, paths, settings,
+#                      voc_data_subset_mode,
+#                      tfrecords_train_filename,
+#                      tfrecords_val_filename):
+#     # download the dataset
+#     pascal_voc_download(dataset_path, filenames,
+#                         paths, settings, urls)
+#     # convert the relevant files to a more useful format
+#     convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
+#     pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root,
+#                                         pascal_berkeley_root,
+#                                         voc_data_subset_mode,
+#                                         tfrecords_train_filename,
+#                                         tfrecords_val_filename)
 
 
 if __name__ == '__main__':
