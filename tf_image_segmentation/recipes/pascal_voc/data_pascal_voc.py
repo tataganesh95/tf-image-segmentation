@@ -36,8 +36,8 @@ data_pascal_voc = Experiment("dataset")
 @data_pascal_voc.config
 def cfg3(paths):
     verbose = True
-    base = expanduser("~") + "/datasets"
-    dataset_path = base + '/VOC2012'
+    dataset_root = expanduser("~") + "/datasets"
+    dataset_path = dataset_root + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # based on https://github.com/martinkersner/train-DeepLab
@@ -60,16 +60,16 @@ def cfg3(paths):
 
 
 @data_pascal_voc.capture
-def pascal_voc_files(dataset_path, filenames, paths, settings, urls):
+def pascal_voc_files(dataset_path, filenames, dataset_root, settings, urls):
     print(dataset_path)
-    print(paths)
+    print(dataset_root)
     print(settings)
     return [dataset_path + filename for filename in filenames]
 
 
 @data_pascal_voc.command
-def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
-    zip_paths = pascal_voc_files(dataset_path, filenames, paths, settings, urls)
+def pascal_voc_download(dataset_path, filenames, dataset_root, settings, urls):
+    zip_paths = pascal_voc_files(dataset_path, filenames, dataset_root, settings, urls)
     for url, filename in zip(urls, filenames):
         get_file(filename, url, untar=True, cache_subdir=dataset_path)
 
@@ -80,7 +80,7 @@ def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
 
 
 # @data_pascal_voc.config
-# def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, paths, settings):
+# def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, dataset_root, settings):
 #     tfrecords_train_filename = dataset_path + '/pascal_augmented_train.tfrecords'
 #     tfrecords_val_filename = dataset_path + '/pascal_augmented_val.tfrecords'
 #     voc_data_subset_mode = 2
@@ -110,13 +110,13 @@ def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
 
 # @data_pascal_voc.command
 # def pascal_voc_setup(filenames, dataset_path, pascal_root,
-#                      pascal_berkeley_root, paths, settings,
+#                      pascal_berkeley_root, dataset_root, settings,
 #                      voc_data_subset_mode,
 #                      tfrecords_train_filename,
 #                      tfrecords_val_filename):
 #     # download the dataset
 #     pascal_voc_download(dataset_path, filenames,
-#                         paths, settings, urls)
+#                         dataset_root, settings, urls)
 #     # convert the relevant files to a more useful format
 #     convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
 #     pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root,
@@ -127,8 +127,8 @@ def pascal_voc_download(dataset_path, filenames, paths, settings, urls):
 
 
 @data_pascal_voc.automain
-def main(dataset_path, filenames, paths, settings, urls):
-    pascal_voc_download(dataset_path, filenames, paths, settings, urls)
+def main(dataset_path, filenames, dataset_root, settings, urls):
+    pascal_voc_download(dataset_path, filenames, dataset_root, settings, urls)
 # if __name__ == '__main__':
 #     # Create pascal voc experiment so dataset interaction
 #     # can be run as its own executable
