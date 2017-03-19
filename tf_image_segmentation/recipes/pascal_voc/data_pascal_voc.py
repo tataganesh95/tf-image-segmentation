@@ -27,7 +27,6 @@ from keras.utils import get_file
 # from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
 from tf_image_segmentation.utils import pascal_voc
-from os.path import expanduser
 import tarfile
 
 # ============== Ingredient 2: dataset =======================
@@ -38,7 +37,7 @@ data_pascal_voc = Experiment("dataset")
 def cfg3():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
-    dataset_root = expanduser("~") + "/datasets"
+    dataset_root = os.path.expanduser("~") + "/datasets"
     dataset_path = dataset_root + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
@@ -66,6 +65,7 @@ def pascal_voc_files(dataset_path, filenames, dataset_root, urls):
     print(dataset_path)
     print(dataset_root)
     print(urls)
+    print(filenames)
     return [dataset_path + filename for filename in filenames]
 
 
@@ -77,6 +77,7 @@ def pascal_voc_download(dataset_path, filenames, dataset_root, urls):
         # TODO(ahundt) check if it is already extracted, don't re-extract. see https://github.com/fchollet/keras/issues/5861
         tar = tarfile.open(path)
         tar.extractall(path=dataset_path)
+        tar.close()
 
 
 @data_pascal_voc.command
@@ -145,9 +146,3 @@ def main(filenames, dataset_path, pascal_root,
                      tfrecords_train_filename,
                      tfrecords_val_filename,
                      urls)
-# if __name__ == '__main__':
-#     # Create pascal voc experiment so dataset interaction
-#     # can be run as its own executable
-#     # ex = Experiment('pascalvoc', ingredients=[data_pascal_voc, data_paths])
-#     # ex.run_commandline();
-#     data_pascal_voc.run_commandline()
