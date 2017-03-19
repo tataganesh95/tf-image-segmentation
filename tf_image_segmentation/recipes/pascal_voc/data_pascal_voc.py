@@ -81,7 +81,7 @@ def pascal_voc_download(dataset_path, filenames, dataset_root, urls):
 
 @data_pascal_voc.command
 def convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root):
-    convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
+    pascal_voc.convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
 
 
 @data_pascal_voc.config
