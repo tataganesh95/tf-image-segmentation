@@ -118,7 +118,8 @@ def pascal_voc_setup(filenames, dataset_path, pascal_root,
                      pascal_berkeley_root, dataset_root,
                      voc_data_subset_mode,
                      tfrecords_train_filename,
-                     tfrecords_val_filename):
+                     tfrecords_val_filename,
+                     urls):
     # download the dataset
     pascal_voc_download(dataset_path, filenames,
                         dataset_root, urls)
