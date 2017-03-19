@@ -6,27 +6,29 @@ from mscoco.org. This can be run as an independent executable to download
 the dataset or be imported by scripts used for larger experiments.
 """
 from __future__ import division, print_function, unicode_literals
-from sacred import Experiment, Ingredient
-import sys
-from pycocotools.coco import COCO
-import numpy as np
-import matplotlib.pyplot as plt
-import pylab
-from PIL import Image
-from collections import defaultdict
 import os
+import sys
+import zipfile
+from collections import defaultdict
+from sacred import Experiment, Ingredient
+import numpy as np
+from PIL import Image
 from keras.utils import get_file
+from pycocotools.coco import COCO
 from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
 
 
 # ============== Ingredient 2: dataset =======================
-data_coco = Ingredient("data_coco", ingredients=[datasets.data_paths, datasets.s])
+data_coco = Experiment("dataset")
 
 
 @data_coco.config
-def cfg3(paths):
-    dataset_path = paths['base'] + '/coco'
+def cfg3():
+    # TODO(ahundt) add md5 sums for each file
+    verbose = True
+    dataset_root = os.path.join(os.path.expanduser('~'), '/datasets')
+    dataset_path = os.path.join(dataset_root, '/coco')
     urls = [
         'http://msvocds.blob.core.windows.net/coco2014/train2014.zip',
         'http://msvocds.blob.core.windows.net/coco2014/val2014.zip',
@@ -38,12 +40,13 @@ def cfg3(paths):
         'http://msvocds.blob.core.windows.net/annotations-1-0-4/image_info_test2015.zip',
         'http://msvocds.blob.core.windows.net/annotations-1-0-3/captions_train-val2014.zip'
     ]
-    image_filenames = [
-        'train2014.zip',
-        'val2014.zip',
-        'test2014.zip',
-        'test2015.zip',
+    data_prefixes = [
+        'train2014',
+        'val2014',
+        'test2014',
+        'test2015',
     ]
+    image_filenames = [prefix + '.zip' for prefix in data_prefixes]
     annotation_filenames = [
         'instances_train-val2014.zip',
         'image_info_test2014.zip',
@@ -54,104 +57,93 @@ def cfg3(paths):
     filenames = []
     filenames.extend(image_filenames)
     filenames.extend(annotation_filenames)
+    seg_mask_path = os.path.join(dataset_path, 'seg_mask')
+    annotation_paths = [os.path.join(
+        dataset_path, '/annotations/instances_%s.json' % prefix) for prefix in data_prefixes]
+    seg_mask_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes]
+    tfrecord_filenames = [os.path.join(dataset_path, prefix, '.tfrecords') for prefix in data_prefixes]
+    image_dirs = [os.path.join(dataset_path, prefix) for prefix in data_prefixes]
 
-if __name__ == '__main__':
-    # Create pascal voc experiment so dataset intraction
-    # can be run as its own executable
-    ex = Experiment('ms_coco', ingredients=[data_coco, datasets.data_paths, datasets.s])
-    ex.run_commandline()
 
 @data_coco.capture
-def coco_files(dataset_path, filenames, paths, settings, urls):
+def coco_files(dataset_path, filenames, dataset_root, urls):
     print(dataset_path)
-    print(paths)
-    print(settings)
-    return [dataset_path + filename for filename in filenames]
+    print(dataset_root)
+    print(urls)
+    print(filenames)
+    return [os.path.join(dataset_path, filename) for filename in filenames]
 
 
 @data_coco.command
-def coco_download(dataset_path, filenames, paths, settings, urls):
-    zip_paths = coco_files(dataset_path, filenames, paths, settings, urls)
+def coco_download(dataset_path, filenames, dataset_root, urls):
+    zip_paths = coco_files(dataset_path, filenames, dataset_root, urls)
     for url, filename in zip(urls, filenames):
-        get_file(filename, url, untar=True, cache_subdir=dataset_path)
-
-
-@data_coco.config
-def cfg_json_to_segmentation(paths):
-    # Modify the following path to point to mscoco directory
-    dataDir='/mnt/disk2/mscoco/'
-    dataType='val2014'
-    # '/mnt/disk2/mscoco/val2014/seg_mask/'
-    save_path = os.path.join(data_dir, dataType, 'seg_mask')
-    annFile='%s/annotations/instances_%s.json'%(dataDir,dataType)
+        path = get_file(filename, url, untar=False, cache_subdir=dataset_path)
+        # TODO(ahundt) check if it is already extracted, don't re-extract. see
+        # https://github.com/fchollet/keras/issues/5861
+        zip_file = zipfile.ZipFile(path, 'r')
+        zip_file.extractall(path=dataset_path)
+        zip_file.close()
 
 
 @data_coco.command
-def coco_json_to_segmentation(dataDir, dataType, save_path, annFile):
-    coco = COCO(annFile)
-    imgToAnns = defaultdict(list)
-    for ann in coco.dataset['instances']:
-        imgToAnns[ann['image_id']].append(ann)
-        anns[ann['id']] = ann
-    for img_num in range(len(imgToAnns.keys())):
-        # Both [0]'s are used to extract the element from a list
-        img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][0]['image_id'])[0]
-        h = img['height']
-        w = img['width']
-        name = img['file_name']
-        root_name = name[:-4]
-        MASK = np.zeros((h, w), dtype=np.uint8)
-        np.where(MASK > 0)
-        for ann in imgToAnns[imgToAnns.keys()[img_num]]:
-            mask = coco.annToMask(ann)
-            ids = np.where(mask > 0)
-            MASK[ids] = ann['category_id']
+def coco_json_to_segmentation(seg_mask_paths, annotation_paths):
+    for (seg_mask_path, annFile) in zip(seg_mask_path, annotation_paths):
+        coco = COCO(annFile)
+        imgToAnns = defaultdict(list)
+        for ann in coco.dataset['instances']:
+            imgToAnns[ann['image_id']].append(ann)
+            # anns[ann['id']] = ann
+        for img_num in range(len(imgToAnns.keys())):
+            # Both [0]'s are used to extract the element from a list
+            img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][
+                0]['image_id'])[0]
+            h = img['height']
+            w = img['width']
+            name = img['file_name']
+            root_name = name[:-4]
+            MASK = np.zeros((h, w), dtype=np.uint8)
+            np.where(MASK > 0)
+            for ann in imgToAnns[imgToAnns.keys()[img_num]]:
+                mask = coco.annToMask(ann)
+                ids = np.where(mask > 0)
+                MASK[ids] = ann['category_id']
 
-        im = Image.fromarray(MASK)
-        im.save(os.path.join(save_path, root_name + ".png"))
-
-
-@data_coco.config
-def cfg_coco_segmentation_to_tfrecord(dataset_path, paths):
-    dataset_path = paths['base'] + '/coco'
-    # Update the following four paths
-    images_dir = '/mnt/disk2/mscoco/train2014/'
-    seg_map_dir = '/mnt/disk2/mscoco/train2014/seg_map/'
-    # This file contains the list of file names with segmentation maps
-    # Note that there is no extension.
-    # e.g.
-    # COCO_val2014_000000000042
-    # COCO_val2014_000000000073
-    # COCO_val2014_000000000074
-    # COCO_val2014_000000000133
-    # COCO_val2014_000000000136
-    # ...
-
-    list_file = '/mnt/disk2/mscoco/train2014/seg_map/list.txt'
-
-    tf_records_filename = '/mnt/disk2/mscoco/mscoco_train2014.tfrecords'
+            im = Image.fromarray(MASK)
+            im.save(os.path.join(seg_mask_path, root_name + ".png"))
 
 
 @data_coco.command
-def coco_segmentation_to_tfrecord(dataset_path, images_dir, seg_map_dir, list_file, tf_records_filename):
+def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
+                                  seg_mask_paths):
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # Get some image/annotation pairs for example
-    filename_pairs = []
-    with open(list_file, 'r') as ff:
-        fnames = ff.readlines()
-        for fname in fnames:
-            fname = fname.rstrip('\n')
-            pair = (os.path.join(images_dir, fname + '.jpg'), os.path.join(seg_map_dir, fname + '.png'))
-            filename_pairs.append(pair)
-
-    # You can create your own tfrecords file by providing
-    # your list with (image, annotation) filename pairs here
-    write_image_annotation_pairs_to_tfrecord(filename_pairs=filename_pairs,
-                                            tfrecords_filename=tf_records_filename)
+    for tfrecords_filename, img_dir, mask_dir in zip(tfrecord_filenames, image_dirs, seg_mask_paths):
+        img_list = [os.path.join(img_dir, file) for file in os.listdir(img_dir) if file.endswith('.jpg')]
+        mask_list = [os.path.join(mask_dir, file) for file in os.listdir(mask_dir) if file.endswith('.png')]
+        filename_pairs = zip(img_list, mask_list)
+        # You can create your own tfrecords file by providing
+        # your list with (image, annotation) filename pairs here
+        write_image_annotation_pairs_to_tfrecord(filename_pairs=filename_pairs,
+                                                 tfrecords_filename=tfrecords_filename)
 
 
-if __name__ == '__main__':
-    # Create coco experiment so dataset interaction
-    # can be run as its own executable
-    ex = Experiment('ms_coco', ingredients=[data_coco, datasets.data_paths, datasets.s])
-    ex.run_commandline()
+@data_coco.command
+def coco_setup(dataset_root, dataset_path, data_prefixes,
+               filenames, urls, tfrecord_filenames, annotation_paths,
+               image_dirs, seg_mask_paths):
+    # download the dataset
+    coco_download(dataset_path, filenames, dataset_root, urls)
+    # convert the relevant files to a more useful format
+    coco_json_to_segmentation(seg_mask_paths, annotation_paths)
+    coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
+                                  seg_mask_paths)
+
+
+@data_coco.automain
+def main(dataset_root, dataset_path, data_prefixes,
+         filenames, urls, tfrecord_filenames, annotation_paths,
+         image_dirs, seg_mask_paths):
+    coco_setup(data_prefixes, dataset_path, filenames, dataset_root, urls,
+               tfrecord_filenames, annotation_paths, image_dirs,
+               seg_mask_paths)
