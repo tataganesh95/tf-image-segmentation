@@ -27,8 +27,8 @@ data_coco = Experiment("dataset")
 def cfg3():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
-    dataset_root = os.path.join(os.path.expanduser('~'), '/datasets')
-    dataset_path = os.path.join(dataset_root, '/coco')
+    dataset_root = os.path.join(os.path.expanduser('~'), 'datasets')
+    dataset_path = os.path.join(dataset_root, 'coco')
     urls = [
         'http://msvocds.blob.core.windows.net/coco2014/train2014.zip',
         'http://msvocds.blob.core.windows.net/coco2014/val2014.zip',
@@ -59,9 +59,9 @@ def cfg3():
     filenames.extend(annotation_filenames)
     seg_mask_path = os.path.join(dataset_path, 'seg_mask')
     annotation_paths = [os.path.join(
-        dataset_path, '/annotations/instances_%s.json' % prefix) for prefix in data_prefixes]
+        dataset_path, 'annotations/instances_%s.json' % prefix) for prefix in data_prefixes]
     seg_mask_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes]
-    tfrecord_filenames = [os.path.join(dataset_path, prefix, '.tfrecords') for prefix in data_prefixes]
+    tfrecord_filenames = [os.path.join(dataset_path, prefix + '.tfrecords') for prefix in data_prefixes]
     image_dirs = [os.path.join(dataset_path, prefix) for prefix in data_prefixes]
 
 
