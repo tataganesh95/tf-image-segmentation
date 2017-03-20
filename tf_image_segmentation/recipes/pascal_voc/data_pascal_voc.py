@@ -72,7 +72,7 @@ def pascal_voc_files(dataset_path, filenames, dataset_root, urls, md5s):
 def pascal_voc_download(dataset_path, filenames, dataset_root, urls, md5s):
     zip_paths = pascal_voc_files(dataset_path, filenames, dataset_root, urls, md5s)
     for url, filename, md5 in zip(urls, filenames, md5s):
-        path = get_file(filename, url, md5_hash=md5, untar=False, cache_subdir=dataset_path)
+        path = get_file(filename, url, md5_hash=md5, extract=True, cache_subdir=dataset_path)
         # TODO(ahundt) check if it is already extracted, don't re-extract. see https://github.com/fchollet/keras/issues/5861
         tar = tarfile.open(path)
         tar.extractall(path=dataset_path)
