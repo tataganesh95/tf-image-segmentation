@@ -60,9 +60,10 @@ def coco_config():
         '04127eef689ceac55e3a572c2c92f264',  # test2014.zip
         '65562e58af7d695cc47356951578c041',  # test2015.zip
         '59582776b8dd745d649cd249ada5acf7',  # instances_train-val2014.zip
+        '926b9df843c698817ee62e0e049e3753',  # person_keypoints_trainval2014.zip
         'f3366b66dc90d8ae0764806c95e43c86',  # image_info_test2014.zip
         '8a5ad1a903b7896df7f8b34833b61757',  # image_info_test2015.zip
-        '926b9df843c698817ee62e0e049e3753',  # person_keypoints_trainval2014.zip
+        '5750999c8c964077e3c81581170be65b'   # captions_train-val2014.zip
     ]
     filenames = image_filenames + annotation_filenames
     seg_mask_path = os.path.join(dataset_path, 'seg_mask')
