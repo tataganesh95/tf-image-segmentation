@@ -86,6 +86,11 @@ def coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_pat
 
 
 @data_coco.command
+def print_coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths):
+    coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths)
+
+
+@data_coco.command
 def coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths):
     zip_paths = coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths)
     for url, filename, md5 in zip(urls, filenames, md5s):
