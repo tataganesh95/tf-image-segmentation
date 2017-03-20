@@ -75,18 +75,19 @@ def coco_config():
 
 
 @data_coco.capture
-def coco_files(dataset_path, filenames, dataset_root, urls, md5s):
+def coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths):
     print(dataset_path)
     print(dataset_root)
     print(urls)
     print(filenames)
     print(md5s)
+    print(annotation_paths)
     return [os.path.join(dataset_path, file) for file in filenames]
 
 
 @data_coco.command
-def coco_download(dataset_path, filenames, dataset_root, urls, md5s):
-    zip_paths = coco_files(dataset_path, filenames, dataset_root, urls, md5s)
+def coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths):
+    zip_paths = coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths)
     for url, filename, md5 in zip(urls, filenames, md5s):
         path = get_file(filename, url, md5_hash=md5, extract=True, cache_subdir=dataset_path)
         # TODO(ahundt) check if it is already extracted, don't re-extract. see
@@ -143,7 +144,7 @@ def coco_setup(dataset_root, dataset_path, data_prefixes,
                filenames, urls, md5s, tfrecord_filenames, annotation_paths,
                image_dirs, seg_mask_paths):
     # download the dataset
-    coco_download(dataset_path, filenames, dataset_root, urls, md5s)
+    coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths)
     # convert the relevant files to a more useful format
     coco_json_to_segmentation(seg_mask_paths, annotation_paths)
     coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
