@@ -48,11 +48,11 @@ def coco_config():
     ]
     image_filenames = [prefix + '.zip' for prefix in data_prefixes]
     annotation_filenames = [
-        'instances_train-val2014.zip',
-        'image_info_test2014.zip',
-        'image_info_test2015.zip',
-        'person_keypoints_trainval2014.zip',
-        'captions_train-val2014.zip',
+        'instances_train-val2014.zip',  # training AND validation info
+        'image_info_test2014.zip',  # basic info like download links + category
+        'image_info_test2015.zip',  # basic info like download links + category
+        'person_keypoints_trainval2014.zip',  # elbows, head, wrist etc
+        'captions_train-val2014.zip',  # descriptions of images
     ]
     md5s = [
         '0da8c0bd3d6becc4dcb32757491aca88',  # train2014.zip
@@ -67,9 +67,13 @@ def coco_config():
     ]
     filenames = image_filenames + annotation_filenames
     seg_mask_path = os.path.join(dataset_path, 'seg_mask')
-    annotation_paths = [os.path.join(
-        dataset_path, 'annotations/instances_%s.json' % prefix) for prefix in data_prefixes]
-    seg_mask_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes]
+    annotation_json = [
+        'annotations/instances_train-2014.json',
+        'annotations/instances_val-2014.json'
+    ]
+    annotation_paths = [os.path.join(dataset_path, postfix) for postfix in annotation_json]
+    # only first two data prefixes contain segmentation masks
+    seg_mask_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes[0:1]]
     tfrecord_filenames = [os.path.join(dataset_path, prefix + '.tfrecords') for prefix in data_prefixes]
     image_dirs = [os.path.join(dataset_path, prefix) for prefix in data_prefixes]
 
@@ -112,8 +116,7 @@ def coco_json_to_segmentation(seg_mask_paths, annotation_paths):
             # anns[ann['id']] = ann
         for img_num in range(len(imgToAnns.keys())):
             # Both [0]'s are used to extract the element from a list
-            img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][
-                0]['image_id'])[0]
+            img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][0]['image_id'])[0]
             h = img['height']
             w = img['width']
             name = img['file_name']
