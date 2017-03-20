@@ -68,8 +68,8 @@ def coco_config():
     filenames = image_filenames + annotation_filenames
     seg_mask_path = os.path.join(dataset_path, 'seg_mask')
     annotation_json = [
-        'annotations/instances_train-2014.json',
-        'annotations/instances_val-2014.json'
+        'annotations/instances_train2014.json',
+        'annotations/instances_val2014.json'
     ]
     annotation_paths = [os.path.join(dataset_path, postfix) for postfix in annotation_json]
     # only first two data prefixes contain segmentation masks
