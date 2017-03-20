@@ -34,7 +34,7 @@ data_pascal_voc = Experiment("dataset")
 
 
 @data_pascal_voc.config
-def cfg3():
+def voc_config():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
     dataset_root = os.path.expanduser("~") + "/datasets"
@@ -54,26 +54,25 @@ def cfg3():
         'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar',
         'http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz'
     ]
-    filenames = [
-        'VOCtrainval_11-May-2012.tar',
-        'benchmark.tgz'
-    ]
+    filenames = ['VOCtrainval_11-May-2012.tar', 'benchmark.tgz']
+    md5s = ['6cd6e144f989b92b3379bac3b3de84fd', '82b4d87ceb2ed10f6038a1cba92111cb']
 
 
 @data_pascal_voc.capture
-def pascal_voc_files(dataset_path, filenames, dataset_root, urls):
+def pascal_voc_files(dataset_path, filenames, dataset_root, urls, md5s):
     print(dataset_path)
     print(dataset_root)
     print(urls)
     print(filenames)
+    print(md5s)
     return [dataset_path + filename for filename in filenames]
 
 
 @data_pascal_voc.command
-def pascal_voc_download(dataset_path, filenames, dataset_root, urls):
-    zip_paths = pascal_voc_files(dataset_path, filenames, dataset_root, urls)
-    for url, filename in zip(urls, filenames):
-        path = get_file(filename, url, untar=False, cache_subdir=dataset_path)
+def pascal_voc_download(dataset_path, filenames, dataset_root, urls, md5s):
+    zip_paths = pascal_voc_files(dataset_path, filenames, dataset_root, urls, md5s)
+    for url, filename, md5 in zip(urls, filenames, md5s):
+        path = get_file(filename, url, md5_hash=md5, untar=False, cache_subdir=dataset_path)
         # TODO(ahundt) check if it is already extracted, don't re-extract. see https://github.com/fchollet/keras/issues/5861
         tar = tarfile.open(path)
         tar.extractall(path=dataset_path)
@@ -120,10 +119,10 @@ def pascal_voc_setup(filenames, dataset_path, pascal_root,
                      voc_data_subset_mode,
                      tfrecords_train_filename,
                      tfrecords_val_filename,
-                     urls):
+                     urls, md5s):
     # download the dataset
     pascal_voc_download(dataset_path, filenames,
-                        dataset_root, urls)
+                        dataset_root, urls, md5s)
     # convert the relevant files to a more useful format
     convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
     pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root,
@@ -139,10 +138,11 @@ def main(filenames, dataset_path, pascal_root,
          voc_data_subset_mode,
          tfrecords_train_filename,
          tfrecords_val_filename,
-         urls):
+         urls, md5s):
+    voc_config()
     pascal_voc_setup(filenames, dataset_path, pascal_root,
                      pascal_berkeley_root, dataset_root,
                      voc_data_subset_mode,
                      tfrecords_train_filename,
                      tfrecords_val_filename,
-                     urls)
+                     urls, md5s)

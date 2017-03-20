@@ -24,7 +24,7 @@ data_coco = Experiment("dataset")
 
 
 @data_coco.config
-def cfg3():
+def coco_config():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
     dataset_root = os.path.join(os.path.expanduser('~'), 'datasets')
@@ -54,9 +54,17 @@ def cfg3():
         'person_keypoints_trainval2014.zip',
         'captions_train-val2014.zip',
     ]
-    filenames = []
-    filenames.extend(image_filenames)
-    filenames.extend(annotation_filenames)
+    md5s = [
+        '0da8c0bd3d6becc4dcb32757491aca88', # train2014.zip
+        'a3d79f5ed8d289b7a7554ce06a5782b3', # val2014.zip
+        '04127eef689ceac55e3a572c2c92f264', # test2014.zip
+        '65562e58af7d695cc47356951578c041', # test2015.zip
+        '59582776b8dd745d649cd249ada5acf7', # instances_train-val2014.zip
+        'f3366b66dc90d8ae0764806c95e43c86', # image_info_test2014.zip
+        '8a5ad1a903b7896df7f8b34833b61757', # image_info_test2015.zip
+        '926b9df843c698817ee62e0e049e3753', # person_keypoints_trainval2014.zip
+    ]
+    filenames = image_filenames + annotation_filenames
     seg_mask_path = os.path.join(dataset_path, 'seg_mask')
     annotation_paths = [os.path.join(
         dataset_path, 'annotations/instances_%s.json' % prefix) for prefix in data_prefixes]
@@ -66,17 +74,18 @@ def cfg3():
 
 
 @data_coco.capture
-def coco_files(dataset_path, filenames, dataset_root, urls):
+def coco_files(dataset_path, filenames, dataset_root, urls, md5s):
     print(dataset_path)
     print(dataset_root)
     print(urls)
     print(filenames)
-    return [os.path.join(dataset_path, filename) for filename in filenames]
+    print(md5s)
+    return [os.path.join(dataset_path, file) for file in filenames]
 
 
 @data_coco.command
-def coco_download(dataset_path, filenames, dataset_root, urls):
-    zip_paths = coco_files(dataset_path, filenames, dataset_root, urls)
+def coco_download(dataset_path, filenames, dataset_root, urls, md5s):
+    zip_paths = coco_files(dataset_path, filenames, dataset_root, urls, md5s)
     for url, filename in zip(urls, filenames):
         path = get_file(filename, url, untar=False, cache_subdir=dataset_path)
         # TODO(ahundt) check if it is already extracted, don't re-extract. see
@@ -130,10 +139,10 @@ def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
 
 @data_coco.command
 def coco_setup(dataset_root, dataset_path, data_prefixes,
-               filenames, urls, tfrecord_filenames, annotation_paths,
+               filenames, urls, md5s, tfrecord_filenames, annotation_paths,
                image_dirs, seg_mask_paths):
     # download the dataset
-    coco_download(dataset_path, filenames, dataset_root, urls)
+    coco_download(dataset_path, filenames, dataset_root, urls, md5s)
     # convert the relevant files to a more useful format
     coco_json_to_segmentation(seg_mask_paths, annotation_paths)
     coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
@@ -142,8 +151,9 @@ def coco_setup(dataset_root, dataset_path, data_prefixes,
 
 @data_coco.automain
 def main(dataset_root, dataset_path, data_prefixes,
-         filenames, urls, tfrecord_filenames, annotation_paths,
+         filenames, urls, md5s, tfrecord_filenames, annotation_paths,
          image_dirs, seg_mask_paths):
+    coco_config()
     coco_setup(data_prefixes, dataset_path, filenames, dataset_root, urls,
-               tfrecord_filenames, annotation_paths, image_dirs,
+               md5s, tfrecord_filenames, annotation_paths, image_dirs,
                seg_mask_paths)
