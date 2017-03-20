@@ -97,7 +97,7 @@ def coco_download(dataset_path, filenames, dataset_root, urls, md5s):
 
 @data_coco.command
 def coco_json_to_segmentation(seg_mask_paths, annotation_paths):
-    for (seg_mask_path, annFile) in zip(seg_mask_path, annotation_paths):
+    for (seg_mask_path, annFile) in zip(seg_mask_paths, annotation_paths):
         coco = COCO(annFile)
         imgToAnns = defaultdict(list)
         for ann in coco.dataset['instances']:
