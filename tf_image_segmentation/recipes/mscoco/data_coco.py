@@ -110,7 +110,8 @@ def coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_
 @data_coco.command
 def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
     for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
-        print('Loading COCO Annotations File: ' + annFile)
+        print('Loading COCO Annotations')
+        print('seg_mask_path: ', seg_mask_path, 'annFile: ', annFile, 'image_path: ', image_path)
         coco = COCO(annFile)
         imgToAnns = defaultdict(list)
         if 'instances' in coco.dataset.keys():
