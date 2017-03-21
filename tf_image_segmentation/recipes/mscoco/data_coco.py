@@ -27,6 +27,7 @@ data_coco = Experiment("dataset")
 def coco_config():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
+    coco_api = 'https://github.com/pdollar/coco/'
     dataset_root = os.path.join(os.path.expanduser('~'), 'datasets')
     dataset_path = os.path.join(dataset_root, 'coco')
     urls = [
@@ -114,35 +115,24 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
         print('Segmentation Mask Output Folder: ', seg_mask_path)
         print('Source Image Folder: ', image_path)
         coco = COCO(annFile)
-        imgToAnns = defaultdict(list)
-        if 'instances' in coco.dataset.keys():
-            print('Converting Annotations to Segmentation Masks...')
-            # 'annotations' was previously 'instances' in an old version
-            for ann in coco.dataset['annotations']:
-                imgToAnns[ann['image_id']].append(ann)
-                # anns[ann['id']] = ann
-            for img_num in range(len(imgToAnns.keys())):
-                # Both [0]'s are used to extract the element from a list
-                img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][0]['image_id'])[0]
-                h = img['height']
-                w = img['width']
-                name = img['file_name']
-                root_name = name[:-4]
-                MASK = np.zeros((h, w), dtype=np.uint8)
-                np.where(MASK > 0)
-                for ann in imgToAnns[imgToAnns.keys()[img_num]]:
-                    mask = coco.annToMask(ann)
-                    ids = np.where(mask > 0)
-                    MASK[ids] = ann['category_id']
+        print('Converting Annotations to Segmentation Masks...')
+        # 'annotations' was previously 'instances' in an old version
+        for img_num in range(len(coco.imgToAnns.keys())):
+            # Both [0]'s are used to extract the element from a list
+            img = coco.loadImgs(coco.imgToAnns[coco.imgToAnns.keys()[img_num]][0]['image_id'])[0]
+            h = img['height']
+            w = img['width']
+            name = img['file_name']
+            root_name = name[:-4]
+            MASK = np.zeros((h, w), dtype=np.uint8)
+            np.where(MASK > 0)
+            for ann in coco.imgToAnns[coco.imgToAnns.keys()[img_num]]:
+                mask = coco.annToMask(ann)
+                ids = np.where(mask > 0)
+                MASK[ids] = ann['category_id']
 
-                im = Image.fromarray(MASK)
-                im.save(os.path.join(seg_mask_path, root_name + ".png"))
-        elif 'sentences' in coco.dataset.keys():
-            print('Skipping Annotation file: ', annFile,
-                  'It has sentences but not instances.' +
-                  'Sentence description conversion is not supported.')
-        else:
-            print('Skipping due to no instances in annotations...')
+            im = Image.fromarray(MASK)
+            im.save(os.path.join(seg_mask_path, root_name + ".png"))
 
 
 @data_coco.command
