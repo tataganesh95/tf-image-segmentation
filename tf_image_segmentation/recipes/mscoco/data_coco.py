@@ -73,7 +73,8 @@ def coco_config():
     ]
     annotation_paths = [os.path.join(dataset_path, postfix) for postfix in annotation_json]
     # only first two data prefixes contain segmentation masks
-    seg_mask_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes[0:1]]
+    seg_mask_image_paths = [os.path.join(dataset_path, prefix) for prefix in data_prefixes[0:1]]
+    seg_mask_output_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes[0:1]]
     tfrecord_filenames = [os.path.join(dataset_path, prefix + '.tfrecords') for prefix in data_prefixes]
     image_dirs = [os.path.join(dataset_path, prefix) for prefix in data_prefixes]
 
@@ -107,37 +108,46 @@ def coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_
 
 
 @data_coco.command
-def coco_json_to_segmentation(seg_mask_paths, annotation_paths):
-    for (seg_mask_path, annFile) in zip(seg_mask_paths, annotation_paths):
-        coco = COCO(annFile)
+def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
+    for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
+        coco = COCO(annFile, image_path)
         imgToAnns = defaultdict(list)
-        for ann in coco.dataset['instances']:
-            imgToAnns[ann['image_id']].append(ann)
-            # anns[ann['id']] = ann
-        for img_num in range(len(imgToAnns.keys())):
-            # Both [0]'s are used to extract the element from a list
-            img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][0]['image_id'])[0]
-            h = img['height']
-            w = img['width']
-            name = img['file_name']
-            root_name = name[:-4]
-            MASK = np.zeros((h, w), dtype=np.uint8)
-            np.where(MASK > 0)
-            for ann in imgToAnns[imgToAnns.keys()[img_num]]:
-                mask = coco.annToMask(ann)
-                ids = np.where(mask > 0)
-                MASK[ids] = ann['category_id']
+        if 'instances' in coco.dataset.keys():
+            for ann in coco.dataset['instances']:
+                imgToAnns[ann['image_id']].append(ann)
+                # anns[ann['id']] = ann
+            for img_num in range(len(imgToAnns.keys())):
+                # Both [0]'s are used to extract the element from a list
+                img = coco.loadImgs(imgToAnns[imgToAnns.keys()[img_num]][0]['image_id'])[0]
+                h = img['height']
+                w = img['width']
+                name = img['file_name']
+                root_name = name[:-4]
+                MASK = np.zeros((h, w), dtype=np.uint8)
+                np.where(MASK > 0)
+                for ann in imgToAnns[imgToAnns.keys()[img_num]]:
+                    mask = coco.annToMask(ann)
+                    ids = np.where(mask > 0)
+                    MASK[ids] = ann['category_id']
 
-            im = Image.fromarray(MASK)
-            im.save(os.path.join(seg_mask_path, root_name + ".png"))
+                im = Image.fromarray(MASK)
+                im.save(os.path.join(seg_mask_path, root_name + ".png"))
+        elif 'sentences' in coco.dataset.keys():
+            print('Skipping due to no instances in annotations,' +
+                  ' sentences conversion not supported. Annotations: ' +
+                  annotation_paths + ' image_path: ' + image_path)
+        else:
+            print('Skipping due to no instances in annotations.' +
+                  ' Annotations: ' + annotation_paths +
+                  ' image_path: ' + image_path)
 
 
 @data_coco.command
 def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
-                                  seg_mask_paths):
+                                  seg_mask_output_paths):
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # Get some image/annotation pairs for example
-    for tfrecords_filename, img_dir, mask_dir in zip(tfrecord_filenames, image_dirs, seg_mask_paths):
+    for tfrecords_filename, img_dir, mask_dir in zip(tfrecord_filenames, image_dirs, seg_mask_output_paths):
         img_list = [os.path.join(img_dir, file) for file in os.listdir(img_dir) if file.endswith('.jpg')]
         mask_list = [os.path.join(mask_dir, file) for file in os.listdir(mask_dir) if file.endswith('.png')]
         filename_pairs = zip(img_list, mask_list)
@@ -150,20 +160,20 @@ def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
 @data_coco.command
 def coco_setup(dataset_root, dataset_path, data_prefixes,
                filenames, urls, md5s, tfrecord_filenames, annotation_paths,
-               image_dirs, seg_mask_paths):
+               image_dirs, seg_mask_output_paths):
     # download the dataset
     coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths)
     # convert the relevant files to a more useful format
-    coco_json_to_segmentation(seg_mask_paths, annotation_paths)
+    coco_json_to_segmentation(seg_mask_output_paths, annotation_paths)
     coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
-                                  seg_mask_paths)
+                                  seg_mask_output_paths)
 
 
 @data_coco.automain
 def main(dataset_root, dataset_path, data_prefixes,
          filenames, urls, md5s, tfrecord_filenames, annotation_paths,
-         image_dirs, seg_mask_paths):
+         image_dirs, seg_mask_output_paths):
     coco_config()
     coco_setup(data_prefixes, dataset_path, filenames, dataset_root, urls,
                md5s, tfrecord_filenames, annotation_paths, image_dirs,
-               seg_mask_paths)
+               seg_mask_output_paths)
