@@ -110,8 +110,9 @@ def coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_
 @data_coco.command
 def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
     for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
-        print('Loading COCO Annotations')
-        print('seg_mask_path: ', seg_mask_path, 'annFile: ', annFile, 'image_path: ', image_path)
+        print('Loading COCO Annotations File: ', annFile)
+        print('Segmentation Mask Output Folder: ', seg_mask_path)
+        print('Source Image Folder: ', image_path)
         coco = COCO(annFile)
         imgToAnns = defaultdict(list)
         if 'instances' in coco.dataset.keys():
@@ -136,13 +137,11 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
                 im = Image.fromarray(MASK)
                 im.save(os.path.join(seg_mask_path, root_name + ".png"))
         elif 'sentences' in coco.dataset.keys():
-            print('Skipping due to no instances in annotations,' +
-                  ' sentences conversion not supported. Annotations: ' +
-                  annotation_paths + ' image_path: ' + image_path)
+            print('Skipping Annotation file: ', annFile,
+                  'It has sentences but not instances.' +
+                  'Sentence description conversion is not supported.')
         else:
-            print('Skipping due to no instances in annotations.' +
-                  ' Annotations: ' + annotation_paths +
-                  ' image_path: ' + image_path)
+            print('Skipping due to no instances in annotations...')
 
 
 @data_coco.command
