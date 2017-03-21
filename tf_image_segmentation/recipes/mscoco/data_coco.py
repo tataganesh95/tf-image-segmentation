@@ -7,7 +7,7 @@ the dataset or be imported by scripts used for larger experiments.
 """
 from __future__ import division, print_function, unicode_literals
 import os
-import sys
+import errno
 import zipfile
 from collections import defaultdict
 from sacred import Experiment, Ingredient
@@ -17,6 +17,17 @@ from keras.utils import get_file
 from pycocotools.coco import COCO
 from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
+
+
+# http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
 
 # ============== Ingredient 2: dataset =======================
@@ -116,6 +127,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
         print('Source Image Folder: ', image_path)
         coco = COCO(annFile)
         print('Converting Annotations to Segmentation Masks...')
+        mkdir_p(seg_mask_path)
         # 'annotations' was previously 'instances' in an old version
         for img_num in range(len(coco.imgToAnns.keys())):
             # Both [0]'s are used to extract the element from a list
