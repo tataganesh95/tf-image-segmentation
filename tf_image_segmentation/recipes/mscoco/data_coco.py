@@ -117,7 +117,8 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
         imgToAnns = defaultdict(list)
         if 'instances' in coco.dataset.keys():
             print('Converting Annotations to Segmentation Masks...')
-            for ann in coco.dataset['instances']:
+            # 'annotations' was previously 'instances' in an old version
+            for ann in coco.dataset['annotations']:
                 imgToAnns[ann['image_id']].append(ann)
                 # anns[ann['id']] = ann
             for img_num in range(len(imgToAnns.keys())):
