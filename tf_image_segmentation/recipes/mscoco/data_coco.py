@@ -308,7 +308,8 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
         max_ids = max(ids()) + 1
-        bin_count = np.zeros(max_ids, dtype=np.long)
+        max_bin_count = max_ids + 1
+        bin_count = np.zeros(max_bin_count)
         total_pixels = 0
 
         progbar = Progbar(len(img_ids), verbose=verbose)
@@ -319,7 +320,8 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
             progbar.update(i)
             ann_ids = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
             anns = coco.loadAnns(ann_ids)
-            target_shape = (img['height'], img['width'], max(ids()) + 1)
+            target_shape = (img['height'], img['width'], max_ids)
+            # print('\ntarget_shape:', target_shape)
             mask_one_hot = np.zeros(target_shape, dtype=np.uint8)
 
             # Note to only count backgroung pixels once, we define a temporary
@@ -331,7 +333,25 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
                 mask_one_hot[mask_partial > 0, ann['category_id']] = ann['category_id'] + 1
                 mask_one_hot[mask_partial > 0, 0] = 0
 
-            bin_count += np.bincount(np.ndarray.flatten(mask_one_hot), max_ids)
+            # print( mask_one_hot)
+            # print('initial bin_count shape:', np.shape(bin_count))
+            # flat_mask_one_hot = mask_one_hot.flatten()
+            bincount_result = np.bincount(mask_one_hot.flatten())
+            # print('bincount_result TYPE:', type(bincount_result))
+            #np.array(np.ndarray.flatten(np.bincount(np.ndarray.flatten(np.array(mask_one_hot)).astype(int))).resize(max_bin_count))
+            # print('bincount_result:', bincount_result)
+            # print('bincount_result_shape', np.shape(bincount_result))
+            length = int(np.shape(bincount_result)[0])
+            zeros_to_add = max_bin_count - length
+            z = np.zeros(zeros_to_add)
+            # print('zeros_to_add TYPE:', type(zeros_to_add))
+            # this is a workaround because for some strange reason the
+            # output type of bincount couldn't interact with other numpy arrays
+            bincount_result_long = bincount_result.tolist()+z.tolist()
+            #bincount_result = bincount_result.resize(max_bin_count)
+            # print('bincount_result2:', bincount_result_long)
+            # print('bincount_result2_shape',bincount_result_long)
+            bin_count = bin_count + np.array(bincount_result_long)
             total_pixels += (img['height'] * img['width'])
 
         print('Final Tally:')
