@@ -14,6 +14,7 @@ from sacred import Experiment, Ingredient
 import numpy as np
 from PIL import Image
 from keras.utils import get_file
+from keras.utils.generic_utils import Progbar
 from pycocotools.coco import COCO
 from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
@@ -101,7 +102,7 @@ data_coco = Experiment("dataset")
 @data_coco.config
 def coco_config():
     # TODO(ahundt) add md5 sums for each file
-    verbose = True
+    verbose = 1
     coco_api = 'https://github.com/pdollar/coco/'
     dataset_root = os.path.join(os.path.expanduser('~'), 'datasets')
     dataset_path = os.path.join(dataset_root, 'coco')
@@ -207,8 +208,10 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
 
         print('Converting Annotations to Segmentation Masks...')
         mkdir_p(seg_mask_path)
+        total_imgs = len(coco.imgToAnns.keys())
+        progbar = Progbar(total_imgs, verbose=1)
         # 'annotations' was previously 'instances' in an old version
-        for img_num in range(len(coco.imgToAnns.keys())):
+        for img_num in range(total_imgs):
             # Both [0]'s are used to extract the element from a list
             img = coco.loadImgs(coco.imgToAnns[coco.imgToAnns.keys()[img_num]][0]['image_id'])[0]
             h = img['height']
@@ -218,10 +221,10 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             filename = os.path.join(seg_mask_path, root_name + ".png")
             file_exists = os.path.exists(filename)
             if file_exists:
-                if verbose:
-                    print(filename, ' exists! skipping...')
+                progbar.add(1, [('file_fraction_already_exists', 1)])
                 continue
             else:
+                progbar.add(1, [('file_fraction_already_exists', 0)])
                 print(filename)
 
             MASK = np.zeros((h, w), dtype=np.uint8)
@@ -243,12 +246,12 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             name = img['file_name']
             root_name = name[:-4]
             filename = os.path.join(seg_mask_path, root_name + ".npy")
+            file_exists = os.path.exists(filename)
             if file_exists:
-                if verbose:
-                    print(filename, ' exists! skipping...')
+                progbar.add(1, [('file_fraction_already_exists', 1)])
                 continue
             else:
-                print(filename)
+                progbar.add(1, [('file_fraction_already_exists', 0)])
 
             if use_original_dims:
                 target_shape = (img['height'], img['width'], max(ids()) + 1)
