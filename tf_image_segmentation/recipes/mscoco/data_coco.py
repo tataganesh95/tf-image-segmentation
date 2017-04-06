@@ -302,7 +302,8 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         print('Source Image Folder: ', image_path)
         cat_csv = os.path.join(seg_mask_path, 'class_counts_over_sum_category_counts.csv')
         stats_json = os.path.join(seg_mask_path, 'image_segmentation_class_stats.json')
-        print('Category weights will be written to:', csv_out)
+        print('Image stats will be saved to:', stats_json)
+        print('Category weights will be saved to:', cat_csv)
         coco = COCO(annFile)
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
