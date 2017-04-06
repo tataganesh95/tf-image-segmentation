@@ -307,7 +307,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         coco = COCO(annFile)
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
-        max_ids = max(ids) + 1
+        max_ids = max(ids()) + 1
         bin_count = np.zeros(max_ids, dtype=np.long)
         total_pixels = 0
 
