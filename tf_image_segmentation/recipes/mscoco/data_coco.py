@@ -218,8 +218,8 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             np.where(MASK > 0)
             for ann in coco.imgToAnns[coco.imgToAnns.keys()[img_num]]:
                 mask = coco.annToMask(ann)
-                ids = np.where(mask > 0)
-                MASK[ids] = ann['category_id']
+                idxs = np.where(mask > 0)
+                MASK[idxs] = ann['category_id']
 
             im = Image.fromarray(MASK)
             im.save(os.path.join(seg_mask_path, root_name + ".png"))
