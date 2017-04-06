@@ -331,7 +331,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
                 mask_one_hot[mask_partial > 0, ann['category_id']] = ann['category_id'] + 1
                 mask_one_hot[mask_partial > 0, 0] = 0
 
-            bin_count += np.bincount(mask_partial, max_ids)
+            bin_count += np.bincount(numpy.ndarray.flatten(mask_one_hot), max_ids)
             total_pixels += (img['height'] * img['width'])
 
         print('Final Tally:')
