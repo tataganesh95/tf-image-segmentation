@@ -9,6 +9,7 @@ from __future__ import division, print_function, unicode_literals
 import os
 import errno
 import zipfile
+import json
 from collections import defaultdict
 from sacred import Experiment, Ingredient
 import numpy as np
@@ -294,15 +295,78 @@ def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
 
 
 @data_coco.command
+def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_mask_image_paths, verbose):
+    for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
+        print('Loading COCO Annotations File: ', annFile)
+        print('Segmentation Mask Output Folder: ', seg_mask_path)
+        print('Source Image Folder: ', image_path)
+        cat_csv = os.path.join(seg_mask_path, 'class_counts_over_sum_category_counts.csv')
+        stats_json = os.path.join(seg_mask_path, 'image_segmentation_class_stats.json')
+        print('Category weights will be written to:', csv_out)
+        coco = COCO(annFile)
+        img_ids = coco.getImgIds()
+        use_original_dims = True  # not target_shape
+        max_ids = max(ids) + 1
+        bin_count = np.zeros(max_ids, dtype=np.long)
+        total_pixels = 0
+
+        progbar = Progbar(len(img_ids), verbose=verbose)
+        i = 0
+        for idx, img_id in enumerate(img_ids):
+            img = coco.loadImgs(img_id)[0]
+            i += 1
+            progbar.update(i)
+            ann_ids = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
+            anns = coco.loadAnns(ann_ids)
+            mask_one_hot = np.zeros(target_shape, dtype=np.uint8)
+
+            # Note to only count backgroung pixels once, we define a temporary
+            # null class of 0, and shift all class category ids up by 1
+            mask_one_hot[:, :, 0] = 1  # every pixel begins as background
+
+            for ann in anns:
+                mask_partial = coco.annToMask(ann)
+                mask_one_hot[mask_partial > 0, ann['category_id']] = ann['category_id'] + 1
+                mask_one_hot[mask_partial > 0, 0] = 0
+
+            bin_count += np.bincount(mask_partial, max_ids)
+            total_pixels += (img['height'] * img['width'])
+
+        print('Final Tally:')
+        # shift categories back down by 1
+        bin_count = bin_count[1:]
+        category_ids = range(max_ids)
+        bin_count_dict = dict(zip(category_ids, bin_count))
+        sum_category_counts = np.sum(bin_count)
+        category_counts_over_sum_category_counts = bin_count.astype(double).true_divide(sum_category_counts)
+        np.savetxt(cat_csv, category_counts_over_sum_category_counts)
+        category_counts_over_total_pixels = bin_count.astype(double).true_divide(total_pixels)
+        print(bin_count)
+        stat_dict = {
+            'total_pixels': total_pixels,
+            'category_counts': bin_count_dict,
+            'sum_category_counts': sum_category_counts,
+            'category_counts_over_sum_category_counts': zip(rcategory_ids, category_counts_over_sum_category_counts),
+            'category_counts_over_total_pixels': zip(rcategory_ids, category_counts_over_total_pixels),
+            'ids': ids(),
+            'categories': categories()
+        }
+        print(stat_dict)
+        with open(stats_json, 'w') as fjson:
+            json.dump(stat_dict, fjson, ensure_ascii=False)
+
+
+@data_coco.command
 def coco_setup(dataset_root, dataset_path, data_prefixes,
                filenames, urls, md5s, tfrecord_filenames, annotation_paths,
-               image_dirs, seg_mask_output_paths):
+               image_dirs, seg_mask_output_paths, verbose):
     # download the dataset
     coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths)
     # convert the relevant files to a more useful format
     coco_json_to_segmentation(seg_mask_output_paths, annotation_paths)
     coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
                                   seg_mask_output_paths)
+    coco_calculate_image_segmentation_stats()
 
 
 @data_coco.automain
