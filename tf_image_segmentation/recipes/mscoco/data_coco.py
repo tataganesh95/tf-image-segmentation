@@ -300,9 +300,9 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         print('Loading COCO Annotations File: ', annFile)
         print('Segmentation Mask Output Folder: ', seg_mask_path)
         print('Source Image Folder: ', image_path)
-        cat_csv = os.path.join(seg_mask_path, 'class_counts_over_sum_category_counts.csv')
         stats_json = os.path.join(seg_mask_path, 'image_segmentation_class_stats.json')
         print('Image stats will be saved to:', stats_json)
+        cat_csv = os.path.join(seg_mask_path, 'class_counts_over_sum_category_counts.csv')
         print('Category weights will be saved to:', cat_csv)
         coco = COCO(annFile)
         img_ids = coco.getImgIds()
@@ -388,7 +388,6 @@ def coco_setup(dataset_root, dataset_path, data_prefixes,
     coco_json_to_segmentation(seg_mask_output_paths, annotation_paths)
     coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
                                   seg_mask_output_paths)
-    coco_calculate_image_segmentation_stats()
 
 
 @data_coco.automain
