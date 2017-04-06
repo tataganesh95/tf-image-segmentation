@@ -204,6 +204,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
               'an opportunity to improve how this training data is handled &'
               'integrated with your training scripts and utilities...')
         coco = COCO(annFile)
+
         print('Converting Annotations to Segmentation Masks...')
         mkdir_p(seg_mask_path)
         # 'annotations' was previously 'instances' in an old version
@@ -214,6 +215,15 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             w = img['width']
             name = img['file_name']
             root_name = name[:-4]
+            filename = os.path.join(seg_mask_path, root_name + ".png")
+            file_exists = os.path.exists(filename)
+            if file_exists:
+                if verbose:
+                    print(filename, ' exists! skipping...')
+                continue
+            else:
+                print(filename)
+
             MASK = np.zeros((h, w), dtype=np.uint8)
             np.where(MASK > 0)
             for ann in coco.imgToAnns[coco.imgToAnns.keys()[img_num]]:
@@ -222,7 +232,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
                 MASK[idxs] = ann['category_id']
 
             im = Image.fromarray(MASK)
-            im.save(os.path.join(seg_mask_path, root_name + ".png"))
+            im.save(filename)
 
         print('Converting Annotations to one hot encoded'
               'categorical .npy Segmentation Masks...')
@@ -232,6 +242,14 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             img = coco.loadImgs(img_id)[0]
             name = img['file_name']
             root_name = name[:-4]
+            filename = os.path.join(seg_mask_path, root_name + ".npy")
+            if file_exists:
+                if verbose:
+                    print(filename, ' exists! skipping...')
+                continue
+            else:
+                print(filename)
+
             if use_original_dims:
                 target_shape = (img['height'], img['width'], max(ids()) + 1)
             ann_ids = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
@@ -254,8 +272,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
                 mask_one_hot[mask_partial > 0, ann['category_id']] = 1
                 mask_one_hot[mask_partial > 0, 0] = 0
 
-            np.save(os.path.join(seg_mask_path, root_name + ".npy"),
-                    mask_one_hot)
+            np.save(filename, mask_one_hot)
 
 
 @data_coco.command
