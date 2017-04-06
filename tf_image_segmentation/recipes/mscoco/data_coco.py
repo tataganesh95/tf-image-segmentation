@@ -209,7 +209,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
         print('Converting Annotations to Segmentation Masks...')
         mkdir_p(seg_mask_path)
         total_imgs = len(coco.imgToAnns.keys())
-        progbar = Progbar(total_imgs + len(coco.getImgIds()), verbose=1)
+        progbar = Progbar(total_imgs + len(coco.getImgIds()), verbose=verbose)
         # 'annotations' was previously 'instances' in an old version
         for img_num in range(total_imgs):
             # Both [0]'s are used to extract the element from a list
@@ -237,7 +237,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             im = Image.fromarray(MASK)
             im.save(filename)
 
-        print('Converting Annotations to one hot encoded'
+        print('\nConverting Annotations to one hot encoded'
               'categorical .npy Segmentation Masks...')
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
