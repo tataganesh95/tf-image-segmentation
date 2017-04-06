@@ -338,7 +338,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
             # flat_mask_one_hot = mask_one_hot.flatten()
             bincount_result = np.bincount(mask_one_hot.flatten())
             # print('bincount_result TYPE:', type(bincount_result))
-            #np.array(np.ndarray.flatten(np.bincount(np.ndarray.flatten(np.array(mask_one_hot)).astype(int))).resize(max_bin_count))
+            # np.array(np.ndarray.flatten(np.bincount(np.ndarray.flatten(np.array(mask_one_hot)).astype(int))).resize(max_bin_count))
             # print('bincount_result:', bincount_result)
             # print('bincount_result_shape', np.shape(bincount_result))
             length = int(np.shape(bincount_result)[0])
@@ -348,7 +348,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
             # this is a workaround because for some strange reason the
             # output type of bincount couldn't interact with other numpy arrays
             bincount_result_long = bincount_result.tolist()+z.tolist()
-            #bincount_result = bincount_result.resize(max_bin_count)
+            # bincount_result = bincount_result.resize(max_bin_count)
             # print('bincount_result2:', bincount_result_long)
             # print('bincount_result2_shape',bincount_result_long)
             bin_count = bin_count + np.array(bincount_result_long)
@@ -358,15 +358,14 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         # shift categories back down by 1
         bin_count = bin_count[1:]
         category_ids = range(max_ids)
-        bin_count_dict = dict(zip(category_ids, bin_count))
         sum_category_counts = np.sum(bin_count)
-        category_counts_over_sum_category_counts = bin_count.astype(double).true_divide(sum_category_counts)
+        category_counts_over_sum_category_counts = bin_count.astype(np.float64).true_divide(sum_category_counts)
         np.savetxt(cat_csv, category_counts_over_sum_category_counts)
-        category_counts_over_total_pixels = bin_count.astype(double).true_divide(total_pixels)
+        category_counts_over_total_pixels = bin_count.astype(np.float64).true_divide(total_pixels)
         print(bin_count)
         stat_dict = {
             'total_pixels': total_pixels,
-            'category_counts': bin_count_dict,
+            'category_counts': dict(zip(category_ids, bin_count)),
             'sum_category_counts': sum_category_counts,
             'category_counts_over_sum_category_counts': zip(rcategory_ids, category_counts_over_sum_category_counts),
             'category_counts_over_total_pixels': zip(rcategory_ids, category_counts_over_total_pixels),
