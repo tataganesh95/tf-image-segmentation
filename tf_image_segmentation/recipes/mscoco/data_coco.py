@@ -209,7 +209,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
         print('Converting Annotations to Segmentation Masks...')
         mkdir_p(seg_mask_path)
         total_imgs = len(coco.imgToAnns.keys())
-        progbar = Progbar(total_imgs, verbose=1)
+        progbar = Progbar(total_imgs + len(coco.getImgIds()), verbose=1)
         # 'annotations' was previously 'instances' in an old version
         for img_num in range(total_imgs):
             # Both [0]'s are used to extract the element from a list
@@ -221,10 +221,10 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
             filename = os.path.join(seg_mask_path, root_name + ".png")
             file_exists = os.path.exists(filename)
             if file_exists:
-                progbar.add(1, [('file_fraction_already_exists', 1)])
+                progbar.update(img_num, [('file_fraction_already_exists', 1)])
                 continue
             else:
-                progbar.add(1, [('file_fraction_already_exists', 0)])
+                progbar.update(img_num, [('file_fraction_already_exists', 0)])
                 print(filename)
 
             MASK = np.zeros((h, w), dtype=np.uint8)
