@@ -9,6 +9,9 @@ import numpy as np
 import skimage.io as io
 import tensorflow as tf
 
+# For comparing tf versions for backwards compatibility
+from packaging import version
+
 # Helper functions for defining tf types
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -154,14 +157,20 @@ def read_tfrecord_and_decode_into_image_annotation_pair_tensors(tfrecord_filenam
     height = tf.cast(features['height'], tf.int32)
     width = tf.cast(features['width'], tf.int32)
     
-    image_shape = tf.pack([height, width, 3])
+    if version.parse(tf.__version__) >= version.parse('1.0.0'):
+        image_shape = tf.stack([height, width, 3])
+    else:
+        image_shape = tf.pack([height, width, 3])
     
     # The last dimension was added because
     # the tf.resize_image_with_crop_or_pad() accepts tensors
     # that have depth. We need resize and crop later.
     # TODO: See if it is necessary and probably remove third
     # dimension
-    annotation_shape = tf.pack([height, width, 1])
+    if version.parse(tf.__version__) >= version.parse('1.0.0'):
+        annotation_shape = tf.stack([height, width, 1])
+    else:
+        annotation_shape = tf.pack([height, width, 1])
     
     image = tf.reshape(image, image_shape)
     annotation = tf.reshape(annotation, annotation_shape)

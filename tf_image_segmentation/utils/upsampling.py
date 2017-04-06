@@ -36,7 +36,7 @@ def bilinear_upsample_weights(factor, number_of_classes):
     
     upsample_kernel = upsample_filt(filter_size)
     
-    for i in xrange(number_of_classes):
+    for i in range(number_of_classes):
         
         weights[:, :, i, i] = upsample_kernel
     
