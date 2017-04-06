@@ -184,7 +184,7 @@ def coco_download(dataset_path, filenames, dataset_root, urls, md5s, annotation_
 
 
 @data_coco.command
-def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
+def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_image_paths, verbose):
     for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
         print('Loading COCO Annotations File: ', annFile)
         print('Segmentation Mask Output Folder: ', seg_mask_path)
