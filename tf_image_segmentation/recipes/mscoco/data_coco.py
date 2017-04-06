@@ -319,6 +319,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
             progbar.update(i)
             ann_ids = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
             anns = coco.loadAnns(ann_ids)
+            target_shape = (img['height'], img['width'], max(ids()) + 1)
             mask_one_hot = np.zeros(target_shape, dtype=np.uint8)
 
             # Note to only count backgroung pixels once, we define a temporary
