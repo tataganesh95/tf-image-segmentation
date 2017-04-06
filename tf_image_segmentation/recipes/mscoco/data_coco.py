@@ -19,8 +19,72 @@ from tf_image_segmentation.recipes import datasets
 from tf_image_segmentation.utils.tf_records import write_image_annotation_pairs_to_tfrecord
 
 
-# http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
+def palette():
+    max_cid = max(ids()) + 1
+    return [(cid, cid, cid) for cid in range(max_cid)]
+
+
+def cids_to_ids_map():
+    return {cid: idx for idx, cid in enumerate(ids())}
+
+
+def ids():
+    return [0,
+     1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 13, 14, 15, 16, 17,
+    18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34, 35, 36,
+    37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53,
+    54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 70, 72, 73,
+    74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90]
+
+
+def id_to_palette_map():
+    return {idx: color for idx, color in enumerate(palette())}
+    # return {0: (0, 0, 0), idx: (idx, idx, idx) for idx, _ in enumerate(categories())}
+
+
+def cid_to_palette_map():
+    return {ids()[idx]: color for idx, color in enumerate(palette())}
+
+
+def palette_to_id_map():
+    return {color: ids()[idx] for idx, color in enumerate(palette())}
+    # return {(0, 0, 0): 0, (idx, idx, idx): idx for idx, _ in enumerate(categories())}
+
+
+def class_weighting():
+    # weights = defaultdict(lambda: 1.5)
+    weights = {i: 1.5 for i in ids()}
+    weights[0] = 0.5
+    return weights
+
+
+def mask_to_palette_map(cid):
+    mapper = id_to_palette_map()
+    return {0: mapper[0], 255: mapper[cid]}
+
+
+def categories():  # 80 classes
+    return ['background',  # class zero
+            'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
+            'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
+            'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
+            'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle',
+            'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange',
+            'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+            'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven',
+            'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
+
+
+def id_to_category(category_id):
+    return {cid: categories()[idx] for idx, cid in enumerate(ids())}[category_id]
+
+
+def category_to_cid_map():
+    return {category: ids()[idx] for idx, category in enumerate(categories())}
+
+
 def mkdir_p(path):
+    # http://stackoverflow.com/questions/600268/mkdir-p-functionality-in-python
     try:
         os.makedirs(path)
     except OSError as exc:  # Python >2.5
@@ -125,6 +189,20 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
         print('Loading COCO Annotations File: ', annFile)
         print('Segmentation Mask Output Folder: ', seg_mask_path)
         print('Source Image Folder: ', image_path)
+        print('\n'
+              'WARNING: Each pixel can have multiple classes! That means'
+              'class data overlaps. Also, single objects can be outlined'
+              'multiple times because they were labeled by different people!'
+              'In other words, even a single object may be segmented twice.'
+              'This means the .png files are missing entire objects.\n\n'
+              'Use of categorical one-hot encoded .npy files is recommended,'
+              'but .npy files also have limitations, because the .npy files'
+              'only have one label per pixel for each class,'
+              'and currently take the union of multiple human class labels.'
+              'Improving how your data is handled will improve your results'
+              'so remember to consider that limitation. There is still'
+              'an opportunity to improve how this training data is handled &'
+              'integrated with your training scripts and utilities...')
         coco = COCO(annFile)
         print('Converting Annotations to Segmentation Masks...')
         mkdir_p(seg_mask_path)
@@ -145,6 +223,39 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
 
             im = Image.fromarray(MASK)
             im.save(os.path.join(seg_mask_path, root_name + ".png"))
+
+        print('Converting Annotations to one hot encoded'
+              'categorical .npy Segmentation Masks...')
+        img_ids = coco.getImgIds()
+        use_original_dims = True  # not target_shape
+        for idx, img_id in enumerate(img_ids):
+            img = coco.loadImgs(img_id)[0]
+            name = img['file_name']
+            root_name = name[:-4]
+            if use_original_dims:
+                target_shape = (img['height'], img['width'], max(ids()) + 1)
+            ann_ids = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
+            anns = coco.loadAnns(ann_ids)
+            mask_one_hot = np.zeros(target_shape, dtype=np.uint8)
+            mask_one_hot[:, :, 0] = 1  # every pixel begins as background
+            # mask_one_hot = cv2.resize(mask_one_hot,
+            #                           target_shape[:2],
+            #                           interpolation=cv2.INTER_NEAREST)
+
+            for ann in anns:
+                mask_partial = coco.annToMask(ann)
+                # mask_partial = cv2.resize(mask_partial,
+                #                           (target_shape[1], target_shape[0]),
+                #                           interpolation=cv2.INTER_NEAREST)
+                # # width and height match
+                # assert mask_one_hot.shape[:2] == mask_partial.shape[:2]
+                #    print('another shape:',
+                #          mask_one_hot[mask_partial > 0].shape)
+                mask_one_hot[mask_partial > 0, ann['category_id']] = 1
+                mask_one_hot[mask_partial > 0, 0] = 0
+
+            np.save(os.path.join(seg_mask_path, root_name + ".npy"),
+                    mask_one_hot)
 
 
 @data_coco.command
