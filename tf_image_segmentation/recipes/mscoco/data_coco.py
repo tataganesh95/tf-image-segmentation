@@ -32,11 +32,11 @@ def cids_to_ids_map():
 
 def ids():
     return [0,
-     1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 13, 14, 15, 16, 17,
-    18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34, 35, 36,
-    37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53,
-    54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 70, 72, 73,
-    74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90]
+            1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14, 15, 16, 17,
+            18, 19, 20, 21, 22, 23, 24, 25, 27, 28, 31, 32, 33, 34, 35, 36,
+            37, 38, 39, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53,
+            54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 67, 70, 72, 73,
+            74, 75, 76, 77, 78, 79, 80, 81, 82, 84, 85, 86, 87, 88, 89, 90]
 
 
 def id_to_palette_map():
@@ -66,7 +66,7 @@ def mask_to_palette_map(cid):
 
 
 def categories():  # 80 classes
-    return ['background',  # class zero
+    return ['background', # class zero
             'person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus', 'train', 'truck', 'boat', 'traffic light',
             'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow',
             'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee',
@@ -359,9 +359,11 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         bin_count = bin_count[1:]
         category_ids = range(max_ids)
         sum_category_counts = np.sum(bin_count)
-        category_counts_over_sum_category_counts = bin_count.astype(np.float64).true_divide(sum_category_counts)
+        category_counts_over_sum_category_counts = \
+            np.true_divide(bin_count.astype(np.float64), sum_category_counts)
         np.savetxt(cat_csv, category_counts_over_sum_category_counts)
-        category_counts_over_total_pixels = bin_count.astype(np.float64).true_divide(total_pixels)
+        category_counts_over_total_pixels = \
+            np.true_divide(bin_count.astype(np.float64), total_pixels)
         print(bin_count)
         stat_dict = {
             'total_pixels': total_pixels,
