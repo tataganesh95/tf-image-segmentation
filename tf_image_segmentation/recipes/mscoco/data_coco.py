@@ -295,6 +295,17 @@ def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
 
 
 @data_coco.command
+def coco_annotation_file_info(seg_mask_output_paths, annotation_paths, seg_mask_image_paths, verbose):
+    for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
+        print('Loading COCO Annotations File: ', annFile)
+        print('Segmentation Mask Output Folder: ', seg_mask_path)
+        print('Source Image Folder: ', image_path)
+        coco = COCO(annFile)
+        print('Annotation file info:')
+        coco.info()
+
+
+@data_coco.command
 def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_mask_image_paths, verbose):
     for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
         print('Loading COCO Annotations File: ', annFile)
@@ -312,6 +323,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         bin_count = np.zeros(max_bin_count)
         total_pixels = 0
 
+        print('Calculating image segmentation stats...')
         progbar = Progbar(len(img_ids), verbose=verbose)
         i = 0
         for idx, img_id in enumerate(img_ids):
@@ -357,7 +369,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         print('Final Tally:')
         # shift categories back down by 1
         bin_count = bin_count[1:]
-        category_ids = ids()
+        category_ids = range(bin_count.size)
         sum_category_counts = np.sum(bin_count)
         category_counts_over_sum_category_counts = \
             np.true_divide(bin_count.astype(np.float64), sum_category_counts)
