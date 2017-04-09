@@ -300,18 +300,21 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         print('Loading COCO Annotations File: ', annFile)
         print('Segmentation Mask Output Folder: ', seg_mask_path)
         print('Source Image Folder: ', image_path)
-        stats_json = os.path.join(seg_mask_path, 'image_segmentation_class_stats.json')
+        stats_json = os.path.join(seg_mask_path,
+                                  'image_segmentation_class_stats.json')
         print('Image stats will be saved to:', stats_json)
-        cat_csv = os.path.join(seg_mask_path, 'class_counts_over_sum_category_counts.csv')
+        cat_csv = os.path.join(seg_mask_path,
+                               'class_counts_over_sum_category_counts.csv')
         print('Category weights will be saved to:', cat_csv)
         coco = COCO(annFile)
         print('Annotation file info:')
         coco.info()
-        print('category ids:')
+        print('category ids, note we add category 0 for background:')
         print(coco.getCatIds())
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
-        max_ids = max(ids()) + 1
+        max_ids = max(ids()) + 1  # add background category
+        # 0 indicates no category (not even background) for counting bins
         max_bin_count = max_ids + 1
         bin_count = np.zeros(max_bin_count)
         total_pixels = 0
