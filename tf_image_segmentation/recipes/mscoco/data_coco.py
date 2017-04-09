@@ -357,7 +357,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         print('Final Tally:')
         # shift categories back down by 1
         bin_count = bin_count[1:]
-        category_ids = range(max_ids)
+        category_ids = ids()
         sum_category_counts = np.sum(bin_count)
         category_counts_over_sum_category_counts = \
             np.true_divide(bin_count.astype(np.float64), sum_category_counts)
@@ -369,8 +369,10 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
             'total_pixels': total_pixels,
             'category_counts': dict(zip(category_ids, bin_count)),
             'sum_category_counts': sum_category_counts,
-            'category_counts_over_sum_category_counts': zip(rcategory_ids, category_counts_over_sum_category_counts),
-            'category_counts_over_total_pixels': zip(rcategory_ids, category_counts_over_total_pixels),
+            'category_counts_over_sum_category_counts':
+                zip(category_ids, category_counts_over_sum_category_counts),
+            'category_counts_over_total_pixels':
+                zip(category_ids, category_counts_over_total_pixels),
             'ids': ids(),
             'categories': categories()
         }
