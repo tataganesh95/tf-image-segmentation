@@ -205,7 +205,7 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
               'so remember to consider that limitation. There is still'
               'an opportunity to improve how this training data is handled &'
               'integrated with your training scripts and utilities...')
-        coco = COCO(annFile)
+        coco = COCO(annFile, image_path)
 
         print('Converting Annotations to Segmentation Masks...')
         mkdir_p(seg_mask_path)
@@ -295,17 +295,6 @@ def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
 
 
 @data_coco.command
-def coco_annotation_file_info(seg_mask_output_paths, annotation_paths, seg_mask_image_paths, verbose):
-    for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
-        print('Loading COCO Annotations File: ', annFile)
-        print('Segmentation Mask Output Folder: ', seg_mask_path)
-        print('Source Image Folder: ', image_path)
-        coco = COCO(annFile)
-        print('Annotation file info:')
-        coco.info()
-
-
-@data_coco.command
 def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_mask_image_paths, verbose):
     for (seg_mask_path, annFile, image_path) in zip(seg_mask_output_paths, annotation_paths, seg_mask_image_paths):
         print('Loading COCO Annotations File: ', annFile)
@@ -315,7 +304,11 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         print('Image stats will be saved to:', stats_json)
         cat_csv = os.path.join(seg_mask_path, 'class_counts_over_sum_category_counts.csv')
         print('Category weights will be saved to:', cat_csv)
-        coco = COCO(annFile)
+        coco = COCO(annFile, image_path)
+        print('Annotation file info:')
+        coco.info()
+        print('category ids:')
+        print(coco.getCatIds())
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
         max_ids = max(ids()) + 1
