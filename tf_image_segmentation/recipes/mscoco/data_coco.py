@@ -309,8 +309,15 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         coco = COCO(annFile)
         print('Annotation file info:')
         coco.info()
-        print('category ids, note we add category 0 for background:')
+        print('category ids, not including 0 for background:')
         print(coco.getCatIds())
+        # display COCO categories and supercategories
+        cats = coco.loadCats(coco.getCatIds())
+        nms = [cat['name'] for cat in cats]
+        print('categories: \n\n', ' '.join(nms))
+
+        nms = set([cat['supercategory'] for cat in cats])
+        print('supercategories: \n', ' '.join(nms))
         img_ids = coco.getImgIds()
         use_original_dims = True  # not target_shape
         max_ids = max(ids()) + 1  # add background category
