@@ -387,7 +387,7 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         # less common categories have more weight, sum = 1
         category_counts_p_complement = \
             [1 - x if x > 0.0 else 0.0
-             for x in category_counts_p_complement]
+             for x in category_counts_over_sum_category_counts]
 
         # less common categories have more weight, sum > 1
         total_pixels_p_complement = \
