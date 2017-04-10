@@ -374,20 +374,40 @@ def coco_image_segmentation_stats(seg_mask_output_paths, annotation_paths, seg_m
         bin_count = bin_count[1:]
         category_ids = range(bin_count.size)
         sum_category_counts = np.sum(bin_count)
+
+        # sum will be =1 as a pixel can be in multiple categories
         category_counts_over_sum_category_counts = \
             np.true_divide(bin_count.astype(np.float64), sum_category_counts)
         np.savetxt(cat_csv, category_counts_over_sum_category_counts)
+
+        # sum will be >1 as a pixel can be in multiple categories
         category_counts_over_total_pixels = \
             np.true_divide(bin_count.astype(np.float64), total_pixels)
+
+        # less common categories have more weight, sum = 1
+        category_counts_p_complement = \
+            [1 - x if x > 0.0 else 0.0
+             for x in category_counts_p_complement]
+
+        # less common categories have more weight, sum > 1
+        total_pixels_p_complement = \
+            [1 - x if x > 0.0 else 0.0
+             for x in category_counts_over_total_pixels]
+
         print(bin_count)
         stat_dict = {
             'total_pixels': total_pixels,
             'category_counts': dict(zip(category_ids, bin_count)),
             'sum_category_counts': sum_category_counts,
             'category_counts_over_sum_category_counts':
-                zip(category_ids, category_counts_over_sum_category_counts),
+                dict(zip(category_ids,
+                         category_counts_over_sum_category_counts)),
             'category_counts_over_total_pixels':
-                zip(category_ids, category_counts_over_total_pixels),
+                dict(zip(category_ids, category_counts_over_total_pixels)),
+            'category_counts_p_complement':
+                dict(zip(category_ids, category_counts_p_complement)),
+            'total_pixels_p_complement':
+                dict(zip(category_ids, total_pixels_p_complement)),
             'ids': ids(),
             'categories': categories()
         }
