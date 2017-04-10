@@ -53,8 +53,8 @@ def palette_to_id_map():
     # return {(0, 0, 0): 0, (idx, idx, idx): idx for idx, _ in enumerate(categories())}
 
 
-def class_weighting(image_segmentation_stats_file=None,
-                    weighting_algorithm='total_pixels_p_complement'):
+def class_weight(image_segmentation_stats_file=None,
+                 weighting_algorithm='total_pixels_p_complement'):
     # weights = defaultdict(lambda: 1.5)
     if image_segmentation_stats_file is None:
         weights = {i: 1.5 for i in ids()}
