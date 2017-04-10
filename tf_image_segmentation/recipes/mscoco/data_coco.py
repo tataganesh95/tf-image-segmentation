@@ -163,7 +163,8 @@ def coco_config():
     tfrecord_filenames = [os.path.join(dataset_path, prefix + '.tfrecords') for prefix in data_prefixes]
     image_dirs = [os.path.join(dataset_path, prefix) for prefix in data_prefixes]
     image_extensions = ['.jpg' for prefix in data_prefixes]
-    voc_imageset_txt_paths = [os.path.join(dataset_path, prefix + '.txt') for prefix in data_prefixes]
+    voc_imageset_txt_paths = [os.path.join(dataset_path, 'annotations', prefix + '.txt') for prefix in data_prefixes]
+
 
 @data_coco.capture
 def coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths):
