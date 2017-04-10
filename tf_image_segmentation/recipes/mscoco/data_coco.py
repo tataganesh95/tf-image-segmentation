@@ -159,9 +159,11 @@ def coco_config():
     # only first two data prefixes contain segmentation masks
     seg_mask_image_paths = [os.path.join(dataset_path, prefix) for prefix in data_prefixes[0:1]]
     seg_mask_output_paths = [os.path.join(seg_mask_path, prefix) for prefix in data_prefixes[0:1]]
+    seg_mask_extensions = ['.npy' for prefix in data_prefixes[0:1]]
     tfrecord_filenames = [os.path.join(dataset_path, prefix + '.tfrecords') for prefix in data_prefixes]
     image_dirs = [os.path.join(dataset_path, prefix) for prefix in data_prefixes]
-
+    image_extensions = ['.jpg' for prefix in data_prefixes]
+    voc_imageset_txt_paths = [os.path.join(dataset_path, prefix + '.txt') for prefix in data_prefixes]
 
 @data_coco.capture
 def coco_files(dataset_path, filenames, dataset_root, urls, md5s, annotation_paths):
@@ -286,8 +288,19 @@ def coco_json_to_segmentation(seg_mask_output_paths, annotation_paths, seg_mask_
 
 
 @data_coco.command
+def coco_to_pascal_voc_imageset_txt(voc_imageset_txt_paths, image_dirs,
+                                    image_extensions):
+    # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
+    # Get some image/annotation pairs for example
+    for imgset_path, img_dir, t_ext in zip(voc_imageset_txt_paths, image_dirs, image_extensions):
+        with open('file.txt', 'w') as txtfile:
+            [txtfile.write(os.path.splittext(os.path.basename(file))[0] + '\n') for file in os.listdir(img_dir) if file.endswith(t_ext)]
+
+
+@data_coco.command
 def coco_segmentation_to_tfrecord(tfrecord_filenames, image_dirs,
                                   seg_mask_output_paths):
+    # TODO(ahundt) support one-hot encoding
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # Get some image/annotation pairs for example
     for tfrecords_filename, img_dir, mask_dir in zip(tfrecord_filenames, image_dirs, seg_mask_output_paths):
