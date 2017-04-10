@@ -294,7 +294,7 @@ def coco_to_pascal_voc_imageset_txt(voc_imageset_txt_paths, image_dirs,
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     # Get some image/annotation pairs for example
     for imgset_path, img_dir, t_ext in zip(voc_imageset_txt_paths, image_dirs, image_extensions):
-        with open('file.txt', 'w') as txtfile:
+        with open(imgset_path, 'w') as txtfile:
             [txtfile.write(os.path.splitext(os.path.basename(file))[0] + '\n') for file in os.listdir(img_dir) if file.endswith(t_ext)]
 
 
