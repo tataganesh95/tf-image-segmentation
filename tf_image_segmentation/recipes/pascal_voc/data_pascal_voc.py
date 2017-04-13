@@ -37,7 +37,7 @@ data_pascal_voc = Experiment("dataset")
 def voc_config():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
-    dataset_root = os.path.expanduser("~") + "/datasets"
+    dataset_root = os.path.expanduser("~") + ".keras/datasets"
     dataset_path = dataset_root + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
@@ -56,6 +56,13 @@ def voc_config():
     ]
     filenames = ['VOCtrainval_11-May-2012.tar', 'benchmark.tgz']
     md5s = ['6cd6e144f989b92b3379bac3b3de84fd', '82b4d87ceb2ed10f6038a1cba92111cb']
+
+    combined_imageset_train_txt = dataset_path + '/combined_imageset_train.txt'
+    combined_imageset_val_txt = dataset_path + '/combined_imageset_val.txt'
+    combined_annotations_path = dataset_path + '/combined_annotations'
+
+    # see get_augmented_pascal_image_annotation_filename_pairs()
+    voc_data_subset_mode = 2
 
 
 @data_pascal_voc.capture
@@ -88,16 +95,54 @@ def convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_roo
 def cfg_pascal_voc_segmentation_to_tfrecord(dataset_path, filenames, dataset_root):
     tfrecords_train_filename = dataset_path + '/pascal_augmented_train.tfrecords'
     tfrecords_val_filename = dataset_path + '/pascal_augmented_val.tfrecords'
-    voc_data_subset_mode = 2
 
 
 @data_pascal_voc.command
-def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkeley_root,
+def pascal_voc_berkeley_combined(dataset_path,
+                                 pascal_root,
+                                 pascal_berkeley_root,
+                                 voc_data_subset_mode,
+                                 combined_imageset_train_txt,
+                                 combined_imageset_val_txt,
+                                 combined_annotations_path):
+    # Returns a list of (image, annotation)
+    # filename pairs (filename.jpg, filename.png)
+    overall_train_image_annotation_filename_pairs, \
+        overall_val_image_annotation_filename_pairs = \
+        pascal_voc.get_augmented_pascal_image_annotation_filename_pairs(
+            pascal_root=pascal_root,
+            pascal_berkeley_root=pascal_berkeley_root,
+            mode=voc_data_subset_mode)
+    # combine the annotation files into one folder
+    pascal_voc.pascal_combine_annotation_files(
+        overall_train_image_annotation_filename_pairs +
+        overall_val_image_annotation_filename_pairs,
+        combined_annotations_path)
+    # generate the train imageset txt
+    pascal_voc.pascal_filename_pairs_to_imageset_txt(
+        combined_imageset_train_txt,
+        overall_train_image_annotation_filename_pairs
+    )
+    # generate the val imageset txt
+    pascal_voc.pascal_filename_pairs_to_imageset_txt(
+        combined_imageset_val_txt,
+        overall_val_image_annotation_filename_pairs
+    )
+
+
+@data_pascal_voc.command
+def pascal_voc_segmentation_to_tfrecord(dataset_path,
+                                        pascal_root,
+                                        pascal_berkeley_root,
                                         voc_data_subset_mode,
-                                        tfrecords_train_filename, tfrecords_val_filename):
-    # Returns a list of (image, annotation) filename pairs (filename.jpg, filename.png)
-    overall_train_image_annotation_filename_pairs, overall_val_image_annotation_filename_pairs = \
-        pascal_voc.get_augmented_pascal_image_annotation_filename_pairs(pascal_root=pascal_root,
+                                        tfrecords_train_filename,
+                                        tfrecords_val_filename):
+    # Returns a list of (image, annotation)
+    # filename pairs (filename.jpg, filename.png)
+    overall_train_image_annotation_filename_pairs, \
+        overall_val_image_annotation_filename_pairs = \
+        pascal_voc.get_augmented_pascal_image_annotation_filename_pairs(
+            pascal_root=pascal_root,
             pascal_berkeley_root=pascal_berkeley_root,
             mode=voc_data_subset_mode)
 
@@ -106,11 +151,13 @@ def pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root, pascal_berkel
     #
     # this will create a tfrecord in:
     # tf_image_segmentation/tf_image_segmentation/recipes/pascal_voc/
-    write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_val_image_annotation_filename_pairs,
-                                             tfrecords_filename=tfrecords_val_filename)
+    write_image_annotation_pairs_to_tfrecord(
+        filename_pairs=overall_val_image_annotation_filename_pairs,
+        tfrecords_filename=tfrecords_val_filename)
 
-    write_image_annotation_pairs_to_tfrecord(filename_pairs=overall_train_image_annotation_filename_pairs,
-                                             tfrecords_filename=tfrecords_train_filename)
+    write_image_annotation_pairs_to_tfrecord(
+        filename_pairs=overall_train_image_annotation_filename_pairs,
+        tfrecords_filename=tfrecords_train_filename)
 
 
 @data_pascal_voc.command
@@ -119,12 +166,23 @@ def pascal_voc_setup(filenames, dataset_path, pascal_root,
                      voc_data_subset_mode,
                      tfrecords_train_filename,
                      tfrecords_val_filename,
-                     urls, md5s):
+                     urls, md5s,
+                     combined_imageset_train_txt,
+                     combined_imageset_val_txt,
+                     combined_annotations_path):
     # download the dataset
     pascal_voc_download(dataset_path, filenames,
                         dataset_root, urls, md5s)
     # convert the relevant files to a more useful format
-    convert_pascal_berkeley_augmented_mat_annotations_to_png(pascal_berkeley_root)
+    convert_pascal_berkeley_augmented_mat_annotations_to_png(
+        pascal_berkeley_root)
+    pascal_voc_berkeley_combined(dataset_path,
+                                 pascal_root,
+                                 pascal_berkeley_root,
+                                 voc_data_subset_mode,
+                                 combined_imageset_train_txt,
+                                 combined_imageset_val_txt,
+                                 combined_annotations_path)
     pascal_voc_segmentation_to_tfrecord(dataset_path, pascal_root,
                                         pascal_berkeley_root,
                                         voc_data_subset_mode,
@@ -138,11 +196,17 @@ def main(filenames, dataset_path, pascal_root,
          voc_data_subset_mode,
          tfrecords_train_filename,
          tfrecords_val_filename,
-         urls, md5s):
+         urls, md5s,
+         combined_imageset_train_txt,
+         combined_imageset_val_txt,
+         combined_annotations_path):
     voc_config()
     pascal_voc_setup(filenames, dataset_path, pascal_root,
                      pascal_berkeley_root, dataset_root,
                      voc_data_subset_mode,
                      tfrecords_train_filename,
                      tfrecords_val_filename,
-                     urls, md5s)
+                     urls, md5s,
+                     combined_imageset_train_txt,
+                     combined_imageset_val_txt,
+                     combined_annotations_path)
