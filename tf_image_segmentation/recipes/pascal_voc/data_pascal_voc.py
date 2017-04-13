@@ -37,7 +37,7 @@ data_pascal_voc = Experiment("dataset")
 def voc_config():
     # TODO(ahundt) add md5 sums for each file
     verbose = True
-    dataset_root = os.path.expanduser("~") + ".keras/datasets"
+    dataset_root = os.path.expanduser("~") + "/.keras/datasets"
     dataset_path = dataset_root + '/VOC2012'
     # sys.path.append("tf-image-segmentation/")
     # os.environ["CUDA_VISIBLE_DEVICES"] = '1'
