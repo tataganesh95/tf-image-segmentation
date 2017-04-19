@@ -49,13 +49,22 @@ def voc_config():
 
     # berkeley augmented Pascal VOC
     # wget http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
+
+    # Pascal Context
+    # http://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz
     pascal_berkeley_root = dataset_path + '/benchmark_RELEASE'
     urls = [
         'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar',
-        'http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz'
+        'http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz',
+        'http://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz'
     ]
-    filenames = ['VOCtrainval_11-May-2012.tar', 'benchmark.tgz']
-    md5s = ['6cd6e144f989b92b3379bac3b3de84fd', '82b4d87ceb2ed10f6038a1cba92111cb']
+    filenames = ['VOCtrainval_11-May-2012.tar',
+                 'benchmark.tgz',
+                 'trainval.tar.gz']
+
+    md5s = ['6cd6e144f989b92b3379bac3b3de84fd',
+            '82b4d87ceb2ed10f6038a1cba92111cb',
+            'df034edb2c12aa7d33b42b20bb1796e3']
 
     combined_imageset_train_txt = dataset_path + '/combined_imageset_train.txt'
     combined_imageset_val_txt = dataset_path + '/combined_imageset_val.txt'
