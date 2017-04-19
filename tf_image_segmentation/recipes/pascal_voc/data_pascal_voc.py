@@ -51,6 +51,7 @@ def voc_config():
     # wget http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
 
     # Pascal Context
+    # http://www.cs.stanford.edu/~roozbeh/pascal-context/
     # http://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz
     pascal_berkeley_root = dataset_path + '/benchmark_RELEASE'
     urls = [
