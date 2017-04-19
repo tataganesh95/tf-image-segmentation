@@ -2,6 +2,7 @@ import skimage.io as io
 import numpy as np
 import os
 import shutil
+import errno
 
 
 def mkdir_p(path):
