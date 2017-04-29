@@ -61,10 +61,7 @@ def adapt_network_for_any_size_input(network_definition, multiple):
         
         # TODO: check if it works with logits, maybe there is no need
         # to do argmax
-        if version.parse(tf.__version__) >= version.parse('1.0.0'):
-            pred = tf.argmax(upsampled_logits_batch, axis=3)
-        else:
-            pred = tf.argmax(upsampled_logits_batch, dimension=3)
+        pred = tf.argmax(upsampled_logits_batch, axis=3)
 
         temp_pred = tf.expand_dims(pred, 3)
 
