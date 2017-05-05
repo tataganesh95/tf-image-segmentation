@@ -11,7 +11,7 @@ machine = socket.gethostname()
 if machine == 'ccvl-4gpu':
     # Use second GPU -- change if you want to use a first one
     os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-    
+
     # Add a path to a custom fork of TF-Slim
     # Get it from here:
     # https://github.com/warmspringwinds/models/tree/fully_conv_vgg
@@ -28,23 +28,7 @@ if machine == 'ccvl-4gpu':
     flags.DEFINE_string("save_dir", os.path.join("/home/vittal/work/segmentation/tf-image-segmentation/save_dir/", exp), "Directory to save trained models")
     flags.DEFINE_string("data_dir", "/home/vittal/work/segmentation/tf-image-segmentation/data/", "Directory which hosts datasets")
 
-elif machine == 'femur':
-    # Use second GPU -- change if you want to use a first one
-    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-    
-    # Add a path to a custom fork of TF-Slim
-    # Get it from here:
-    # https://github.com/warmspringwinds/models/tree/fully_conv_vgg
-
-    flags.DEFINE_string("slim_path", "/home/ahundt/src/tf_models/slim", "The path to tf slim repo")
-
-    # Add path to the cloned library
-    flags.DEFINE_string("tf_image_seg_dir", "/home/ahundt/src/tf-image-segmentation/", "Dir for tf-image-segmentation repo")
-    flags.DEFINE_string("checkpoints_dir", "/home/ahundt/tf_image_segmentation_checkpoints/", "Directory where checkpoints are saved")
-    flags.DEFINE_string("log_dir", "/home/ahundt/tf_image_segmentation_checkpoints/log_dir/", "Directory to save TF logs")
-    flags.DEFINE_string("save_dir", "/home/ahundt/tf_image_segmentation_checkpoints/save_dir/", "Directory to save checkpoint models")
-
-elif 'login' or 'gpu' in machine:
+elif ('login' in machine) or ('gpu' in machine):
     # Add a path to a custom fork of TF-Slim
     # Get it from here:
     # https://github.com/warmspringwinds/models/tree/fully_conv_vgg
@@ -61,7 +45,7 @@ elif 'login' or 'gpu' in machine:
 elif "thin6" in machine:
     # Use second GPU -- change if you want to use a first one
     os.environ["CUDA_VISIBLE_DEVICES"] = '0'
-    
+
     # Add a path to a custom fork of TF-Slim
     # Get it from here:
     # https://github.com/warmspringwinds/models/tree/fully_conv_vgg
@@ -74,11 +58,27 @@ elif "thin6" in machine:
     flags.DEFINE_string("log_dir", "/home/dpakhom1/tf_projects/segmentation/log_folder/", "Directory to save TF logs")
     flags.DEFINE_string("save_dir", "/home/dpakhom1/tf_projects/segmentation/", "Directory to save checkpoint models")
 
+else:
+    # Use second GPU -- change if you want to use a first one
+    os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+
+    # Add a path to a custom fork of TF-Slim
+    # Get it from here:
+    # https://github.com/warmspringwinds/models/tree/fully_conv_vgg
+
+    flags.DEFINE_string("slim_path", os.path.join(os.path.expanduser("~"),"src/tf_models/slim"), "The path to tf slim repo")
+
+    # Add path to the cloned library
+    flags.DEFINE_string("tf_image_seg_dir", os.path.join(os.path.expanduser("~"),"src/tf-image-segmentation/"), "Dir for tf-image-segmentation repo")
+    flags.DEFINE_string("checkpoints_dir", os.path.join(os.path.expanduser("~"),"tf_image_segmentation_checkpoints/"), "Directory where checkpoints are saved")
+    flags.DEFINE_string("log_dir", os.path.join(os.path.expanduser("~"),"tf_image_segmentation_checkpoints/log_dir/"), "Directory to save TF logs")
+    flags.DEFINE_string("save_dir", os.path.join(os.path.expanduser("~"),"tf_image_segmentation_checkpoints/save_dir/"), "Directory to save checkpoint models")
+    flags.DEFINE_string("data_dir", os.path.join(os.path.expanduser("~"),"src/tf-image-segmentation/tf_image_segmentation/recipes/pascal_voc"), "Directory to save checkpoint models")
 FLAGS = flags.FLAGS
 
 sys.path.append(FLAGS.slim_path)
 sys.path.append(FLAGS.tf_image_seg_dir)
 
 if not os.path.exists(FLAGS.data_dir):
-    print('Could not find path to datasets. Exiting...')
+    print('Could not find path to datasets in tf_image_segmentation/utils/set_paths.py. Exiting...')
     sys.exit()

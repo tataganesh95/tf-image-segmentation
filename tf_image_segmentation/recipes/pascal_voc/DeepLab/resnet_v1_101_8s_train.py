@@ -4,7 +4,6 @@ import skimage.io as io
 import os, sys
 from matplotlib import pyplot as plt
 
-
 sys.path.append(os.path.join(os.path.join(os.getcwd(), "../../../../../tf-image-segmentation")))
 from tf_image_segmentation.utils import set_paths # Sets appropriate paths and provides access to log_dir and checkpoint_path via FLAGS
 
@@ -14,11 +13,12 @@ checkpoints_dir = FLAGS.checkpoints_dir
 log_dir = os.path.join(FLAGS.log_dir, "deeplab/")
 
 slim = tf.contrib.slim
-#resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'resnet_v1_101.ckpt')
-resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'model_resnet_101_8s_epoch_240822.ckpt')
-#if not os.path.isfile(resnet_101_v1_checkpoint_path):
-#    import tf_image_segmentation.utils.download_ckpt as dl_ckpt
-#    dl_ckpt.download_ckpt('http://download.tensorflow.org/models/resnet_v1_101_2016_08_28.tar.gz')
+resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'resnet_v1_101.ckpt')
+#resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'model_resnet_101_8s_epoch_240822.ckpt')
+print(resnet_101_v1_checkpoint_path)
+if not os.path.isfile(resnet_101_v1_checkpoint_path) :
+    import tf_image_segmentation.utils.download_ckpt as dl_ckpt
+    dl_ckpt.download_ckpt('http://download.tensorflow.org/models/resnet_v1_101_2016_08_28.tar.gz')
 
 from tf_image_segmentation.utils.tf_records import read_tfrecord_and_decode_into_image_annotation_pair_tensors
 from tf_image_segmentation.models.resnet_v1_101_8s import resnet_v1_101_8s, extract_resnet_v1_101_mapping_without_logits
