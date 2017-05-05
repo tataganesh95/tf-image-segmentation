@@ -51,20 +51,34 @@ def voc_config():
     # wget http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
 
     # Pascal Context
+    # http://www.cs.stanford.edu/~roozbeh/pascal-context/
     # http://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz
     pascal_berkeley_root = dataset_path + '/benchmark_RELEASE'
     urls = [
         'http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar',
         'http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz',
-        'http://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz'
+        'http://www.cs.stanford.edu/~roozbeh/pascal-context/trainval.tar.gz',
+        'http://www.cs.stanford.edu/~roozbeh/pascal-context/33_context_labels.tar.gz',
+        'http://www.cs.stanford.edu/~roozbeh/pascal-context/59_context_labels.tar.gz',
+        'http://www.cs.stanford.edu/~roozbeh/pascal-context/33_labels.txt',
+        'http://www.cs.stanford.edu/~roozbeh/pascal-context/59_labels.txt'
     ]
     filenames = ['VOCtrainval_11-May-2012.tar',
                  'benchmark.tgz',
-                 'trainval.tar.gz']
+                 'trainval.tar.gz',
+                 '33_context_labels.tar.gz',
+                 '59_context_labels.tar.gz',
+                 '33_labels.txt',
+                 '59_labels.txt'
+                 ]
 
     md5s = ['6cd6e144f989b92b3379bac3b3de84fd',
             '82b4d87ceb2ed10f6038a1cba92111cb',
-            'df034edb2c12aa7d33b42b20bb1796e3']
+            'df034edb2c12aa7d33b42b20bb1796e3',
+            '180101cfc01c71867b6686207f071eb9',
+            'f85d450010762a0e1080304286ce30ed',
+            '8840f5439b471aecf991ac6448b826e6',
+            '993901f2d930cc038c406845f08fa082']
 
     combined_imageset_train_txt = dataset_path + '/combined_imageset_train.txt'
     combined_imageset_val_txt = dataset_path + '/combined_imageset_val.txt'
@@ -89,10 +103,7 @@ def pascal_voc_download(dataset_path, filenames, dataset_root, urls, md5s):
     zip_paths = pascal_voc_files(dataset_path, filenames, dataset_root, urls, md5s)
     for url, filename, md5 in zip(urls, filenames, md5s):
         path = get_file(filename, url, md5_hash=md5, extract=True, cache_subdir=dataset_path)
-        # TODO(ahundt) check if it is already extracted, don't re-extract. see https://github.com/fchollet/keras/issues/5861
-        tar = tarfile.open(path)
-        tar.extractall(path=dataset_path)
-        tar.close()
+
 
 
 @data_pascal_voc.command
