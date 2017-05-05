@@ -1,5 +1,8 @@
 import tensorflow as tf
 
+# For comparing tf versions for backwards compatibility
+from packaging import version
+
 def adapt_network_for_any_size_input(network_definition, multiple):
     """Returns an updated function for network definition that supports input of any size.
     The function creates a new function that is an original function wrapped with
@@ -58,7 +61,7 @@ def adapt_network_for_any_size_input(network_definition, multiple):
         
         # TODO: check if it works with logits, maybe there is no need
         # to do argmax
-        pred = tf.argmax(upsampled_logits_batch, dimension=3)
+        pred = tf.argmax(upsampled_logits_batch, axis=3)
 
         temp_pred = tf.expand_dims(pred, 3)
 

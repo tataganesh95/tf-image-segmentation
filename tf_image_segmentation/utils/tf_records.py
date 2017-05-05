@@ -9,6 +9,9 @@ import numpy as np
 import skimage.io as io
 import tensorflow as tf
 
+# For comparing tf versions for backwards compatibility
+from packaging import version
+
 # Helper functions for defining tf types
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -42,6 +45,8 @@ def write_image_annotation_pairs_to_tfrecord(filename_pairs, tfrecords_filename)
             img = img2
 
         annotation = np.array(Image.open(annotation_path))
+        # Unomment this one when working with surgical data
+        # annotation = annotation[:, :, 0]
 
         # The reason to store image sizes was demonstrated
         # in the previous example -- we have to know sizes

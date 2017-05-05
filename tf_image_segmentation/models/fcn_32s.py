@@ -3,6 +3,9 @@ import tensorflow as tf
 from preprocessing import vgg_preprocessing
 from ..utils.upsampling import bilinear_upsample_weights
 
+# For comparing tf versions for backwards compatibility
+from packaging import version
+
 slim = tf.contrib.slim
 
 # Mean values for VGG-16
@@ -114,7 +117,7 @@ def FCN_32s(image_batch_tensor,
         downsampled_logits_shape = tf.shape(logits)
 
         # Calculate the ouput size of the upsampled tensor
-        upsampled_logits_shape = tf.pack([
+        upsampled_logits_shape = tf.stack([
                                           downsampled_logits_shape[0],
                                           downsampled_logits_shape[1] * upsample_factor,
                                           downsampled_logits_shape[2] * upsample_factor,

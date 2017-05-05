@@ -3,6 +3,9 @@ import tensorflow as tf
 from preprocessing import vgg_preprocessing
 from ..utils.upsampling import bilinear_upsample_weights
 
+# For comparing tf versions for backwards compatibility
+from packaging import version
+
 slim = tf.contrib.slim
 
 # Mean values for VGG-16
@@ -83,7 +86,7 @@ def FCN_16s(image_batch_tensor,
 
 
             # Calculate the ouput size of the upsampled tensor
-            last_layer_upsampled_by_factor_2_logits_shape = tf.pack([
+            last_layer_upsampled_by_factor_2_logits_shape = tf.stack([
                                                                   last_layer_logits_shape[0],
                                                                   last_layer_logits_shape[1] * 2,
                                                                   last_layer_logits_shape[2] * 2,
@@ -108,7 +111,7 @@ def FCN_16s(image_batch_tensor,
                                        [1, 1],
                                        activation_fn=None,
                                        normalizer_fn=None,
-                                       weights_initializer=tf.zeros_initializer,
+                                       weights_initializer=tf.zeros_initializer(),
                                        scope='pool4_fc')
 
             fused_last_layer_and_pool4_logits = pool4_logits + last_layer_upsampled_by_factor_2_logits
@@ -117,7 +120,7 @@ def FCN_16s(image_batch_tensor,
 
 
             # Calculate the ouput size of the upsampled tensor
-            fused_last_layer_and_pool4_upsampled_by_factor_16_logits_shape = tf.pack([
+            fused_last_layer_and_pool4_upsampled_by_factor_16_logits_shape = tf.stack([
                                                                           fused_last_layer_and_pool4_logits_shape[0],
                                                                           fused_last_layer_and_pool4_logits_shape[1] * 16,
                                                                           fused_last_layer_and_pool4_logits_shape[2] * 16,
