@@ -14,7 +14,7 @@ log_dir = os.path.join(FLAGS.log_dir, "deeplab/")
 
 slim = tf.contrib.slim
 resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'resnet_v1_101.ckpt')
-#resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'model_resnet_101_8s_epoch_240822.ckpt')
+# resnet_101_v1_checkpoint_path = os.path.join(checkpoints_dir, 'model_resnet_101_8s_epoch_240822.ckpt')
 print(resnet_101_v1_checkpoint_path)
 if not os.path.isfile(resnet_101_v1_checkpoint_path) :
     import tf_image_segmentation.utils.download_ckpt as dl_ckpt
@@ -102,6 +102,7 @@ with tf.variable_scope("adam_vars"):
 # Variable's initialization functions
 resnet_v1_101_without_logits_variables_mapping = extract_resnet_v1_101_mapping_without_logits(resnet_v1_101_variables_mapping)
 
+# print(resnet_v1_101_without_logits_variables_mapping)
 
 init_fn = slim.assign_from_checkpoint_fn(model_path=resnet_101_v1_checkpoint_path,
                                          var_list=resnet_v1_101_without_logits_variables_mapping)
