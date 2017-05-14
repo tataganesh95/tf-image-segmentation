@@ -65,6 +65,17 @@ the PASCAL VOC 2012 Training data and additional Berkeley segmentation data for 
 It was important to test models on restricted Validation dataset to make sure no images in the
 validation dataset were seen by model during training.
 
+Here is how to download the datasets:
+```bash
+
+# original PASCAL VOC 2012
+curl -O http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar # 2 GB
+
+# berkeley augmented PASCAL VOC
+curl -O http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
+```
+
+
 The code to acquire the training and validating the model is also provided in the framework.
 
 ### Fully Convolutional Networks for Semantic Segmentation (FCNs)

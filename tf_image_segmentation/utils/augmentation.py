@@ -1,31 +1,30 @@
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
-from preprocessing.inception_preprocessing import distort_color, apply_with_random_selector
-
-slim = tf.contrib.slim
+import tensorflow.contrib.slim as slim
+from slim.preprocessing.inception_preprocessing import distort_color, apply_with_random_selector
 
 def flip_randomly_left_right_image_with_annotation(image_tensor, annotation_tensor):
     """Accepts image tensor and annotation tensor and returns randomly flipped tensors of both.
     The function performs random flip of image and annotation tensors with probability of 1/2
     The flip is performed or not performed for image and annotation consistently, so that
     annotation matches the image.
-    
+
     Parameters
     ----------
     image_tensor : Tensor of size (width, height, 3)
         Tensor with image
     annotation_tensor : Tensor of size (width, height, 1)
         Tensor with annotation
-        
+
     Returns
     -------
     randomly_flipped_img : Tensor of size (width, height, 3) of type tf.float.
         Randomly flipped image tensor
     randomly_flipped_annotation : Tensor of size (width, height, 1)
         Randomly flipped annotation tensor
-        
+
     """
-    
+
     # Random variable: two possible outcomes (0 or 1)
     # with a 1 in 2 chance
     random_var = tf.random_uniform(maxval=2, dtype=tf.int32, shape=[])
@@ -38,7 +37,7 @@ def flip_randomly_left_right_image_with_annotation(image_tensor, annotation_tens
     randomly_flipped_annotation = control_flow_ops.cond(pred=tf.equal(random_var, 0),
                                                         fn1=lambda: tf.image.flip_left_right(annotation_tensor),
                                                         fn2=lambda: annotation_tensor)
-    
+
     return randomly_flipped_img, randomly_flipped_annotation
 
 
@@ -48,23 +47,23 @@ def distort_randomly_image_color(image_tensor, fast_mode=False):
     for inception model training in TF-Slim (you can find the link below in comments). All the
     parameters of random variables were originally preserved. There are two regimes for the function
     to work: fast and slow. Slow one performs only saturation and brightness random change is performed.
-    
+
     Parameters
     ----------
     image_tensor : Tensor of size (width, height, 3) of tf.int32 or tf.float
         Tensor with image with range [0,255]
     fast_mode : boolean
         Boolean value representing whether to use fast or slow mode
-        
+
     Returns
     -------
     img_float_distorted_original_range : Tensor of size (width, height, 3) of type tf.float.
         Image Tensor with distorted color in [0,255] intensity range
     """
-    
+
     # Make the range to be in [0,1]
     img_float_zero_one_range = tf.to_float(image_tensor) / 255
-    
+
     # Randomly distort the color of image. There are 4 ways to do it.
     # Credit: TF-Slim
     # https://github.com/tensorflow/models/blob/master/slim/preprocessing/inception_preprocessing.py#L224
@@ -73,12 +72,12 @@ def distort_randomly_image_color(image_tensor, fast_mode=False):
     distorted_image = apply_with_random_selector(img_float_zero_one_range,
                                                  lambda x, ordering: distort_color(x, ordering, fast_mode=fast_mode),
                                                  num_cases=4)
-    
+
     img_float_distorted_original_range = distorted_image * 255
-    
+
     return img_float_distorted_original_range
-    
-    
+
+
 
 
 def scale_randomly_image_with_annotation_with_fixed_size_output(img_tensor,
@@ -102,7 +101,7 @@ def scale_randomly_image_with_annotation_with_fixed_size_output(img_tensor,
     those regions in the annotation using mask_out_number. Overall, the function performs the
     rescaling neccessary to get image of output_shape, adds random scale jitter, preserves
     scale ratio, masks out unneccassary regions that appear.
-    
+
     Parameters
     ----------
     img_tensor : Tensor of size (width, height, depth)
@@ -119,7 +118,7 @@ def scale_randomly_image_with_annotation_with_fixed_size_output(img_tensor,
         when getting random scaling jitter
     mask_out_number : int
         Number representing the mask out value.
-        
+
     Returns
     -------
     cropped_padded_img : Tensor of size (output_shape[0], output_shape[1], 3).
@@ -127,7 +126,7 @@ def scale_randomly_image_with_annotation_with_fixed_size_output(img_tensor,
     cropped_padded_annotation : Tensor of size (output_shape[0], output_shape[1], 1)
         Respective annotation Tensor that was randomly scaled with the same parameters
     """
-    
+
     # tf.image.resize_nearest_neighbor needs
     # first dimension to represent the batch number
     img_batched = tf.expand_dims(img_tensor, 0)
@@ -152,10 +151,10 @@ def scale_randomly_image_with_annotation_with_fixed_size_output(img_tensor,
     final_scale = tf.reduce_min(scales) * rand_var
 
     scaled_input_shape = tf.to_int32(tf.round(input_shape_float * final_scale))
-    
+
     # Resize the image and annotation using nearest neighbour
     # Be careful -- may cause aliasing.
-    
+
     # TODO: try bilinear resampling for image only
     resized_img = tf.image.resize_nearest_neighbor( img_batched, scaled_input_shape )
     resized_annotation = tf.image.resize_nearest_neighbor( annotation_batched, scaled_input_shape )
@@ -173,11 +172,11 @@ def scale_randomly_image_with_annotation_with_fixed_size_output(img_tensor,
     cropped_padded_annotation = tf.image.resize_image_with_crop_or_pad(annotation_shifted_classes,
                                                                        output_shape[0],
                                                                        output_shape[1])
-    
+
     # TODO: accept the classes lut instead of mask out
     # value as an argument
     annotation_additional_mask_out = tf.to_int32(tf.equal(cropped_padded_annotation, 0)) * (mask_out_number+1)
 
     cropped_padded_annotation = cropped_padded_annotation + annotation_additional_mask_out - 1
-    
+
     return cropped_padded_img, cropped_padded_annotation
