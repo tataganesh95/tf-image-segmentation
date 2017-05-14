@@ -3,9 +3,6 @@ import tensorflow as tf
 from preprocessing import vgg_preprocessing
 from ..utils.upsampling import bilinear_upsample_weights
 
-# For comparing tf versions for backwards compatibility
-from packaging import version
-
 slim = tf.contrib.slim
 
 # Mean values for VGG-16
@@ -86,20 +83,12 @@ def FCN_16s(image_batch_tensor,
 
 
             # Calculate the ouput size of the upsampled tensor
-            if version.parse(tf.__version__) >= version.parse('1.0.0'):
-                last_layer_upsampled_by_factor_2_logits_shape = tf.stack([
-                                                                      last_layer_logits_shape[0],
-                                                                      last_layer_logits_shape[1] * 2,
-                                                                      last_layer_logits_shape[2] * 2,
-                                                                      last_layer_logits_shape[3]
-                                                                     ])
-            else:
-                last_layer_upsampled_by_factor_2_logits_shape = tf.pack([
-                                                                      last_layer_logits_shape[0],
-                                                                      last_layer_logits_shape[1] * 2,
-                                                                      last_layer_logits_shape[2] * 2,
-                                                                      last_layer_logits_shape[3]
-                                                                     ])
+            last_layer_upsampled_by_factor_2_logits_shape = tf.stack([
+                                                                  last_layer_logits_shape[0],
+                                                                  last_layer_logits_shape[1] * 2,
+                                                                  last_layer_logits_shape[2] * 2,
+                                                                  last_layer_logits_shape[3]
+                                                                 ])
 
             # Perform the upsampling
             last_layer_upsampled_by_factor_2_logits = tf.nn.conv2d_transpose(last_layer_logits,
@@ -114,22 +103,13 @@ def FCN_16s(image_batch_tensor,
             # We zero initialize the weights to start training with the same
             # accuracy that we ended training FCN-32s
 
-            if version.parse(tf.__version__) >= version.parse('1.0.0'):
-                pool4_logits = slim.conv2d(pool4_features,
-                                           number_of_classes,
-                                           [1, 1],
-                                           activation_fn=None,
-                                           normalizer_fn=None,
-                                           weights_initializer=tf.zeros_initializer(),
-                                           scope='pool4_fc')
-            else:
-                pool4_logits = slim.conv2d(pool4_features,
-                                           number_of_classes,
-                                           [1, 1],
-                                           activation_fn=None,
-                                           normalizer_fn=None,
-                                           weights_initializer=tf.zeros_initializer,
-                                           scope='pool4_fc')
+            pool4_logits = slim.conv2d(pool4_features,
+                                       number_of_classes,
+                                       [1, 1],
+                                       activation_fn=None,
+                                       normalizer_fn=None,
+                                       weights_initializer=tf.zeros_initializer(),
+                                       scope='pool4_fc')
 
             fused_last_layer_and_pool4_logits = pool4_logits + last_layer_upsampled_by_factor_2_logits
 
@@ -137,21 +117,12 @@ def FCN_16s(image_batch_tensor,
 
 
             # Calculate the ouput size of the upsampled tensor
-            if version.parse(tf.__version__) >= version.parse('1.0.0'):
-                fused_last_layer_and_pool4_upsampled_by_factor_16_logits_shape = tf.stack([
-                                                                              fused_last_layer_and_pool4_logits_shape[0],
-                                                                              fused_last_layer_and_pool4_logits_shape[1] * 16,
-                                                                              fused_last_layer_and_pool4_logits_shape[2] * 16,
-                                                                              fused_last_layer_and_pool4_logits_shape[3]
-                                                                             ])
-            else:
-                fused_last_layer_and_pool4_upsampled_by_factor_16_logits_shape = tf.pack([
-                                                                              fused_last_layer_and_pool4_logits_shape[0],
-                                                                              fused_last_layer_and_pool4_logits_shape[1] * 16,
-                                                                              fused_last_layer_and_pool4_logits_shape[2] * 16,
-                                                                              fused_last_layer_and_pool4_logits_shape[3]
-                                                                             ])
-                
+            fused_last_layer_and_pool4_upsampled_by_factor_16_logits_shape = tf.stack([
+                                                                          fused_last_layer_and_pool4_logits_shape[0],
+                                                                          fused_last_layer_and_pool4_logits_shape[1] * 16,
+                                                                          fused_last_layer_and_pool4_logits_shape[2] * 16,
+                                                                          fused_last_layer_and_pool4_logits_shape[3]
+                                                                         ])
 
             # Perform the upsampling
             fused_last_layer_and_pool4_upsampled_by_factor_16_logits = tf.nn.conv2d_transpose(fused_last_layer_and_pool4_logits,

@@ -24,7 +24,7 @@ The end goal is to provide utilities to convert other datasets, report accuracie
 
 This code requires:
 
-1. Tensorflow ```r0.12``` or later version.
+1. Tensorflow ```r1.0``` or later version.
 
 2. Custom [tensorflow/models](https://github.com/tensorflow/models) repository, which might be [merged](https://github.com/tensorflow/models/pull/684) in a future.
 
@@ -65,6 +65,17 @@ the PASCAL VOC 2012 Training data and additional Berkeley segmentation data for 
 It was important to test models on restricted Validation dataset to make sure no images in the
 validation dataset were seen by model during training.
 
+Here is how to download the datasets:
+```bash
+
+# original PASCAL VOC 2012
+curl -O http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar # 2 GB
+
+# berkeley augmented PASCAL VOC
+curl -O http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
+```
+
+
 The code to acquire the training and validating the model is also provided in the framework.
 
 ### Fully Convolutional Networks for Semantic Segmentation (FCNs)
@@ -90,9 +101,14 @@ This code has been used to train networks with this performance:
 
 ## About
 
-The framework was developed by:
+If you used the code for your research, please, cite the paper:
 
-* Daniil Pakhomov
+    @article{pakhomov2017deep,
+      title={Deep Residual Learning for Instrument Segmentation in Robotic Surgery},
+      author={Pakhomov, Daniil and Premachandran, Vittal and Allan, Max and Azizian, Mahdi and Navab, Nassir},
+      journal={arXiv preprint arXiv:1703.08580},
+      year={2017}
+    }
 
 During implementation, some preliminary experiments and notes were reported:
 - [Converting Image Classification network into FCN](http://warmspringwinds.github.io/tensorflow/tf-slim/2016/10/30/image-classification-and-segmentation-using-tensorflow-and-tf-slim/)
