@@ -3,9 +3,6 @@ import tensorflow as tf
 from preprocessing import vgg_preprocessing
 from ..utils.upsampling import bilinear_upsample_weights
 
-# For comparing tf versions for backwards compatibility
-from packaging import version
-
 slim = tf.contrib.slim
 
 # Mean values for VGG-16

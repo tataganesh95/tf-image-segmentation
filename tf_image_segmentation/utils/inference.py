@@ -1,8 +1,5 @@
 import tensorflow as tf
 
-# For comparing tf versions for backwards compatibility
-from packaging import version
-
 def adapt_network_for_any_size_input(network_definition, multiple):
     """Returns an updated function for network definition that supports input of any size.
     The function creates a new function that is an original function wrapped with

@@ -9,9 +9,6 @@ import numpy as np
 import skimage.io as io
 import tensorflow as tf
 
-# For comparing tf versions for backwards compatibility
-from packaging import version
-
 # Helper functions for defining tf types
 def _bytes_feature(value):
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))

@@ -24,7 +24,7 @@ The end goal is to provide utilities to convert other datasets, report accuracie
 
 This code requires:
 
-1. Tensorflow ```r0.12``` or later version.
+1. Tensorflow ```r1.0``` or later version.
 
 2. Custom [tensorflow/models](https://github.com/tensorflow/models) repository, which might be [merged](https://github.com/tensorflow/models/pull/684) in a future.
 
