@@ -114,7 +114,7 @@ def FCN_32s(image_batch_tensor,
         downsampled_logits_shape = tf.shape(logits)
 
         # Calculate the ouput size of the upsampled tensor
-        upsampled_logits_shape = tf.pack([
+        upsampled_logits_shape = tf.stack([
                                           downsampled_logits_shape[0],
                                           downsampled_logits_shape[1] * upsample_factor,
                                           downsampled_logits_shape[2] * upsample_factor,

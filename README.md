@@ -24,7 +24,7 @@ The end goal is to provide utilities to convert other datasets, report accuracie
 
 This code requires:
 
-1. Tensorflow ```r0.12``` or later version.
+1. Tensorflow ```r1.0``` or later version.
 
 2. Custom [tensorflow/models](https://github.com/tensorflow/models) repository, which might be [merged](https://github.com/tensorflow/models/pull/684) in a future.
 
@@ -64,6 +64,17 @@ Implemented models were tested on Restricted PASCAL VOC 2012 Validation dataset 
 the PASCAL VOC 2012 Training data and additional Berkeley segmentation data for PASCAL VOC 12.
 It was important to test models on restricted Validation dataset to make sure no images in the
 validation dataset were seen by model during training.
+
+Here is how to download the datasets:
+```bash
+
+# original PASCAL VOC 2012
+curl -O http://host.robots.ox.ac.uk/pascal/VOC/voc2012/VOCtrainval_11-May-2012.tar # 2 GB
+
+# berkeley augmented PASCAL VOC
+curl -O http://www.eecs.berkeley.edu/Research/Projects/CS/vision/grouping/semantic_contours/benchmark.tgz # 1.3 GB
+```
+
 
 The code to acquire the training and validating the model is also provided in the framework.
 

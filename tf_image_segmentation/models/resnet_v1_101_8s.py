@@ -9,7 +9,7 @@ slim = tf.contrib.slim
 from preprocessing.vgg_preprocessing import _R_MEAN, _G_MEAN, _B_MEAN
 
 
-def extract_resnet_v1_101_mapping_without_logits(resnet_v1_101_variables_mapping):
+def extract_resnet_v1_101_mapping_without_logits(resnet_v1_101_variables_mapping, mapping_prefix=''):
     """Removes the logits variable mapping from resnet_v1_101_8s to resnet_v1_101 model mapping dict.
     Given the resnet_v1_101_8s to resnet_v1_101 model mapping dict which is returned by
     resnet_v1_101_8s() function, remove the mapping for the fc8 variable. This is done because this
@@ -24,6 +24,13 @@ def extract_resnet_v1_101_mapping_without_logits(resnet_v1_101_variables_mapping
         Dict which maps the resnet_v1_101_8s model's variables to resnet_v1_101 checkpoint variables
         names. Look at resnet_v1_101_8s() function for more details.
     
+    mapping_prefix : string
+        mapping_prefix is the prefix added to convert the names of the tensors you've created to match
+        the names of the tensors in the saved model checkpoint. When loading from imagenet pretrained
+        weights such as http://download.tensorflow.org/models/resnet_v1_101_2016_08_28.tar.gz,
+        use the default empty mapping prefix, then when reloading from a checkpoint use
+        'resnet_v1_101_8s/'.
+    
     Returns
     -------
     updated_mapping : dict {string: variable}
@@ -37,11 +44,12 @@ def extract_resnet_v1_101_mapping_without_logits(resnet_v1_101_variables_mapping
     resnet_v1_101_without_logits_keys = []
 
     for key in resnet_v1_101_keys:
-
+        print key
         if 'logits' not in key:
             resnet_v1_101_without_logits_keys.append(key)
-
-    updated_mapping = {key: resnet_v1_101_variables_mapping[key] for key in resnet_v1_101_without_logits_keys}
+    # TODO: fix the following hack to get the scope right
+    # updated_mapping = {'resnet_v1_101_8s/' + key: resnet_v1_101_variables_mapping[key] for key in resnet_v1_101_without_logits_keys}
+    updated_mapping = {mapping_prefix + key: resnet_v1_101_variables_mapping[key] for key in resnet_v1_101_without_logits_keys}
     
     return updated_mapping
 
@@ -110,13 +118,14 @@ def resnet_v1_101_8s(image_batch_tensor,
                                                 number_of_classes,
                                                 is_training=is_training,
                                                 global_pool=False,
-                                                output_stride=8)
+                                                output_stride=8,
+                                                spatial_squeeze=False)
         
 
         downsampled_logits_shape = tf.shape(logits)
 
         # Calculate the ouput size of the upsampled tensor
-        upsampled_logits_shape = tf.pack([
+        upsampled_logits_shape = tf.stack([
                                           downsampled_logits_shape[0],
                                           downsampled_logits_shape[1] * upsample_factor,
                                           downsampled_logits_shape[2] * upsample_factor,
@@ -139,7 +148,6 @@ def resnet_v1_101_8s(image_batch_tensor,
         resnet_v1_101_8s_variables = slim.get_variables(resnet_v1_101_8s)
 
         for variable in resnet_v1_101_8s_variables:
-
             # Here we remove the part of a name of the variable
             # that is responsible for the current variable scope
             original_resnet_v1_101_checkpoint_string = variable.name[len(resnet_v1_101_8s.original_name_scope):-2]
